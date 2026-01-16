@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>流媒体播放器</title>
+    <title>流媒体播放器 - 智能批量链接管理</title>
     <link href="https://vjs.zencdn.net/7.20.3/video-js.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -22,7 +22,7 @@
         }
         
         .container {
-            max-width: 1400px;
+            max-width: 1600px;
             margin: 0 auto;
         }
         
@@ -53,14 +53,20 @@
             gap: 25px;
         }
         
-        @media (max-width: 1024px) {
+        @media (max-width: 1200px) {
             .main-layout {
                 flex-direction: column;
             }
         }
         
         .player-section {
-            flex: 2;
+            flex: 3;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .player-container {
             background: rgba(0, 0, 0, 0.3);
             border-radius: 15px;
             padding: 20px;
@@ -87,7 +93,6 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-top: 20px;
             padding: 15px;
             background: rgba(0, 0, 0, 0.3);
             border-radius: 10px;
@@ -174,16 +179,16 @@
             font-weight: 600;
         }
         
-        /* 链接管理模块样式 */
+        /* 右侧链接列表样式 */
         .links-section {
-            flex: 1;
+            flex: 2;
             background: rgba(0, 0, 0, 0.3);
             border-radius: 15px;
             padding: 20px;
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
             display: flex;
             flex-direction: column;
-            max-height: 90vh;
+            max-height: 85vh;
         }
         
         .section-title {
@@ -197,6 +202,17 @@
         
         .section-title i {
             font-size: 1.2rem;
+        }
+        
+        /* 链接管理模块样式 */
+        .management-section {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+            max-height: 85vh;
         }
         
         .tabs {
@@ -243,7 +259,7 @@
             font-size: 0.95rem;
         }
         
-        input[type="url"], input[type="text"], textarea {
+        input[type="text"], textarea {
             padding: 12px 15px;
             border-radius: 8px;
             border: 1px solid rgba(255, 255, 255, 0.1);
@@ -262,6 +278,34 @@
             box-shadow: 0 0 0 2px rgba(76, 201, 240, 0.2);
         }
         
+        .batch-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .batch-input {
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        .batch-hint {
+            font-size: 0.85rem;
+            color: #888;
+            margin-top: 5px;
+            line-height: 1.4;
+        }
+        
+        .batch-hint code {
+            background: rgba(76, 201, 240, 0.2);
+            color: #4cc9f0;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+        
+        /* 预览容器 */
         .preview-container {
             margin-top: 15px;
             max-height: 300px;
@@ -322,33 +366,7 @@
             word-break: break-all;
         }
         
-        .batch-controls {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 15px;
-            flex-wrap: wrap;
-        }
-        
-        .batch-input {
-            flex: 1;
-            min-width: 200px;
-        }
-        
-        .batch-hint {
-            font-size: 0.85rem;
-            color: #888;
-            margin-top: 5px;
-            line-height: 1.4;
-        }
-        
-        .batch-hint code {
-            background: rgba(76, 201, 240, 0.2);
-            color: #4cc9f0;
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-family: monospace;
-        }
-        
+        /* 右侧链接列表 */
         .links-list-container {
             flex: 1;
             overflow-y: auto;
@@ -386,6 +404,7 @@
         .link-info {
             flex: 1;
             overflow: hidden;
+            min-width: 0;
         }
         
         .link-title {
@@ -430,6 +449,7 @@
             color: white;
             cursor: pointer;
             transition: all 0.2s;
+            flex-shrink: 0;
         }
         
         .link-btn.play {
@@ -484,7 +504,7 @@
                 gap: 15px;
             }
             
-            .player-section, .links-section {
+            .player-container, .management-section, .links-section {
                 padding: 15px;
             }
             
@@ -510,6 +530,18 @@
                 min-width: unset;
             }
         }
+        
+        .management-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .management-buttons {
+            display: flex;
+            gap: 10px;
+        }
     </style>
 </head>
 <body>
@@ -520,136 +552,197 @@
         </header>
         
         <div class="main-layout">
-            <section class="player-section">
-                <div class="player-wrapper">
-                    <video
-                        id="my-video"
-                        class="video-js vjs-default-skin vjs-big-play-centered"
-                        controls
-                        preload="auto"
-                        poster="https://images.unsplash.com/photo-1536240478700-b869070f9279?ixlib=rb-4.0.3&auto=format&fit=crop&w=1600&q=80"
-                        data-setup='{}'>
-                        <p class="vjs-no-js">
-                            您的浏览器不支持HTML5视频播放，请升级浏览器或尝试使用其他浏览器。
-                        </p>
-                    </video>
-                </div>
-                
-                <div class="controls-bar">
-                    <div class="button-group">
-                        <button id="play-btn" class="success">
-                            <i class="fas fa-play"></i> 播放
-                        </button>
-                        <button id="pause-btn" class="secondary">
-                            <i class="fas fa-pause"></i> 暂停
-                        </button>
-                        <button id="fullscreen-btn">
-                            <i class="fas fa-expand"></i> 全屏
-                        </button>
-                        <button id="prev-btn">
-                            <i class="fas fa-backward"></i> 上一个
-                        </button>
-                        <button id="next-btn">
-                            <i class="fas fa-forward"></i> 下一个
-                        </button>
+            <!-- 左侧：播放器和链接管理 -->
+            <div class="player-section">
+                <!-- 播放器 -->
+                <div class="player-container">
+                    <div class="player-wrapper">
+                        <video
+                            id="my-video"
+                            class="video-js vjs-default-skin vjs-big-play-centered"
+                            controls
+                            preload="auto"
+                            poster="https://images.unsplash.com/photo-1536240478700-b869070f9279?ixlib=rb-4.0.3&auto=format&fit=crop&w=1600&q=80"
+                            data-setup='{}'>
+                            <p class="vjs-no-js">
+                                您的浏览器不支持HTML5视频播放，请升级浏览器或尝试使用其他浏览器。
+                            </p>
+                        </video>
                     </div>
                     
-                    <div class="status-info">
-                        <div class="status-indicator">
-                            <div class="status-dot" id="status-dot"></div>
-                            <span id="status-text">准备播放</span>
-                        </div>
-                        <div class="format-display" id="current-format">未加载</div>
-                    </div>
-                </div>
-            </section>
-            
-            <section class="links-section">
-                <h2 class="section-title"><i class="fas fa-list"></i> 链接管理</h2>
-                
-                <div class="tabs">
-                    <button class="tab active" data-tab="single-tab">单个添加</button>
-                    <button class="tab" data-tab="batch-tab">批量添加</button>
-                </div>
-                
-                <!-- 单个添加标签页 -->
-                <div id="single-tab" class="tab-content active">
-                    <div class="input-group">
-                        <label for="single-url"><i class="fas fa-link"></i> 流媒体URL</label>
-                        <input type="url" id="single-url" placeholder="输入HLS (.m3u8) 或 MP4 流媒体地址...">
-                    </div>
-                    
-                    <div class="batch-controls">
-                        <div class="input-group batch-input">
-                            <label for="base-title-single"><i class="fas fa-heading"></i> 基础标题</label>
-                            <input type="text" id="base-title-single" placeholder="例如：阿加莎克里斯蒂之七面钟">
+                    <div class="controls-bar">
+                        <div class="button-group">
+                            <button id="play-btn" class="success">
+                                <i class="fas fa-play"></i> 播放
+                            </button>
+                            <button id="pause-btn" class="secondary">
+                                <i class="fas fa-pause"></i> 暂停
+                            </button>
+                            <button id="fullscreen-btn">
+                                <i class="fas fa-expand"></i> 全屏
+                            </button>
+                            <button id="prev-btn">
+                                <i class="fas fa-backward"></i> 上一个
+                            </button>
+                            <button id="next-btn">
+                                <i class="fas fa-forward"></i> 下一个
+                            </button>
                         </div>
                         
-                        <div class="input-group batch-input">
-                            <label for="season-single"><i class="fas fa-layer-group"></i> 季数</label>
-                            <input type="number" id="season-single" placeholder="1" min="1" value="1">
-                        </div>
-                        
-                        <div class="input-group batch-input">
-                            <label for="episode-single"><i class="fas fa-film"></i> 集数</label>
-                            <input type="number" id="episode-single" placeholder="1" min="1" value="1">
+                        <div class="status-info">
+                            <div class="status-indicator">
+                                <div class="status-dot" id="status-dot"></div>
+                                <span id="status-text">准备播放</span>
+                            </div>
+                            <div class="format-display" id="current-format">未加载</div>
                         </div>
                     </div>
-                    
-                    <button id="add-single-btn" class="success" style="width: 100%; margin-top: 10px;">
-                        <i class="fas fa-plus"></i> 添加单个链接
-                    </button>
                 </div>
                 
-                <!-- 批量添加标签页 -->
-                <div id="batch-tab" class="tab-content">
-                    <div class="input-group">
-                        <label for="base-title-batch"><i class="fas fa-heading"></i> 基础标题</label>
-                        <input type="text" id="base-title-batch" placeholder="例如：阿加莎克里斯蒂之七面钟">
-                        <div class="batch-hint">这是所有剧集的通用标题部分</div>
+                <!-- 链接管理 -->
+                <div class="management-section">
+                    <h2 class="section-title"><i class="fas fa-list"></i> 链接管理</h2>
+                    
+                    <div class="tabs">
+                        <button class="tab active" data-tab="auto-tab">自动识别</button>
+                        <button class="tab" data-tab="manual-tab">手动识别</button>
                     </div>
                     
-                    <div class="input-group">
-                        <label for="batch-urls"><i class="fas fa-list-ol"></i> 批量URL列表（每行一个）</label>
-                        <textarea id="batch-urls" placeholder="每行输入一个URL，例如：
+                    <!-- 自动识别标签页 -->
+                    <div id="auto-tab" class="tab-content active">
+                        <div class="input-group">
+                            <label for="base-title-auto"><i class="fas fa-heading"></i> 基础标题</label>
+                            <input type="text" id="base-title-auto" placeholder="例如：阿加莎克里斯蒂之七面钟">
+                            <div class="batch-hint">这是所有剧集的通用标题部分</div>
+                        </div>
+                        
+                        <div class="input-group">
+                            <label for="batch-urls"><i class="fas fa-list-ol"></i> 批量URL列表（每行一个）</label>
+                            <textarea id="batch-urls" placeholder="每行输入一个URL，例如：
 https://example.com/agatha_s1e1.m3u8
 https://example.com/agatha_s1e2.m3u8
 https://example.com/agatha_s1e3.m3u8"></textarea>
-                        <div class="batch-hint">每行一个URL，系统会自动识别季和集信息。支持格式：S01E01、s1e1、第1季第1集等</div>
-                    </div>
-                    
-                    <div class="batch-controls">
-                        <div class="input-group batch-input">
-                            <label for="season-batch"><i class="fas fa-layer-group"></i> 默认季数</label>
-                            <input type="number" id="season-batch" placeholder="1" min="1" value="1">
-                            <div class="batch-hint">当URL中未识别到季数时使用此值</div>
+                            <div class="batch-hint">每行一个URL，系统会自动识别季和集信息。支持格式：S01E01、s1e1、第1季第1集等</div>
                         </div>
                         
-                        <div class="input-group batch-input">
-                            <label for="start-episode"><i class="fas fa-play-circle"></i> 起始集数</label>
-                            <input type="number" id="start-episode" placeholder="1" min="1" value="1">
-                            <div class="batch-hint">当URL中未识别到集数时，从此值开始自动分配</div>
+                        <div class="batch-controls">
+                            <div class="input-group batch-input">
+                                <label for="season-auto"><i class="fas fa-layer-group"></i> 默认季数</label>
+                                <input type="number" id="season-auto" placeholder="1" min="1" value="1">
+                                <div class="batch-hint">当URL中未识别到季数时使用此值</div>
+                            </div>
+                            
+                            <div class="input-group batch-input">
+                                <label for="start-episode"><i class="fas fa-play-circle"></i> 起始集数</label>
+                                <input type="number" id="start-episode" placeholder="1" min="1" value="1">
+                                <div class="batch-hint">当URL中未识别到集数时，从此值开始自动分配</div>
+                            </div>
+                        </div>
+                        
+                        <div class="management-actions">
+                            <button id="generate-auto-btn" class="warning" style="width: 100%;">
+                                <i class="fas fa-bolt"></i> 智能识别并预览
+                            </button>
+                            
+                            <div id="auto-preview" class="preview-container" style="display: none;">
+                                <div class="preview-header">
+                                    <div class="preview-title">自动识别结果预览</div>
+                                    <div class="preview-count" id="auto-preview-count">共 0 个链接</div>
+                                </div>
+                                <div class="preview-list" id="auto-preview-list">
+                                    <!-- 预览项将通过JavaScript动态添加 -->
+                                </div>
+                            </div>
+                            
+                            <div class="management-buttons">
+                                <button id="add-auto-btn" class="success" style="flex: 1; display: none;">
+                                    <i class="fas fa-plus-circle"></i> 确认添加
+                                </button>
+                                <button id="clear-auto-btn" class="secondary" style="flex: 1; display: none;">
+                                    <i class="fas fa-times"></i> 清空预览
+                                </button>
+                            </div>
                         </div>
                     </div>
                     
-                    <button id="generate-batch-btn" class="warning" style="width: 100%; margin-top: 10px;">
-                        <i class="fas fa-bolt"></i> 智能识别并预览
-                    </button>
-                    
-                    <div id="batch-preview" class="preview-container" style="display: none;">
-                        <div class="preview-header">
-                            <div class="preview-title">识别结果预览</div>
-                            <div class="preview-count" id="preview-count">共 0 个链接</div>
+                    <!-- 手动识别标签页 -->
+                    <div id="manual-tab" class="tab-content">
+                        <div class="input-group">
+                            <label for="base-title-manual"><i class="fas fa-heading"></i> 基础标题</label>
+                            <input type="text" id="base-title-manual" placeholder="例如：阿加莎克里斯蒂之七面钟">
+                            <div class="batch-hint">这是所有剧集的通用标题部分</div>
                         </div>
-                        <div class="preview-list" id="preview-list">
-                            <!-- 预览项将通过JavaScript动态添加 -->
+                        
+                        <div class="input-group">
+                            <label for="manual-urls"><i class="fas fa-list-ol"></i> 批量URL列表（每行一个）</label>
+                            <textarea id="manual-urls" placeholder="每行输入一个URL，例如：
+https://example.com/agatha_s1e1.m3u8
+https://example.com/agatha_s1e2.m3u8
+https://example.com/agatha_s1e3.m3u8"></textarea>
+                            <div class="batch-hint">每行一个URL，然后手动指定季集信息</div>
+                        </div>
+                        
+                        <div class="batch-controls">
+                            <div class="input-group batch-input">
+                                <label for="season-manual"><i class="fas fa-layer-group"></i> 季数</label>
+                                <input type="number" id="season-manual" placeholder="1" min="1" value="1">
+                            </div>
+                            
+                            <div class="input-group batch-input">
+                                <label for="start-episode-manual"><i class="fas fa-play-circle"></i> 起始集数</label>
+                                <input type="number" id="start-episode-manual" placeholder="1" min="1" value="1">
+                            </div>
+                            
+                            <div class="input-group batch-input">
+                                <label for="episode-step"><i class="fas fa-sort-numeric-up"></i> 集数步长</label>
+                                <input type="number" id="episode-step" placeholder="1" min="1" value="1">
+                                <div class="batch-hint">集数递增的步长，默认为1</div>
+                            </div>
+                        </div>
+                        
+                        <div class="management-actions">
+                            <button id="generate-manual-btn" class="warning" style="width: 100%;">
+                                <i class="fas fa-eye"></i> 手动识别并预览
+                            </button>
+                            
+                            <div id="manual-preview" class="preview-container" style="display: none;">
+                                <div class="preview-header">
+                                    <div class="preview-title">手动识别结果预览</div>
+                                    <div class="preview-count" id="manual-preview-count">共 0 个链接</div>
+                                </div>
+                                <div class="preview-list" id="manual-preview-list">
+                                    <!-- 预览项将通过JavaScript动态添加 -->
+                                </div>
+                            </div>
+                            
+                            <div class="management-buttons">
+                                <button id="add-manual-btn" class="success" style="flex: 1; display: none;">
+                                    <i class="fas fa-plus-circle"></i> 确认添加
+                                </button>
+                                <button id="clear-manual-btn" class="secondary" style="flex: 1; display: none;">
+                                    <i class="fas fa-times"></i> 清空预览
+                                </button>
+                            </div>
                         </div>
                     </div>
                     
-                    <button id="add-batch-btn" class="success" style="width: 100%; margin-top: 10px; display: none;">
-                        <i class="fas fa-plus-circle"></i> 确认添加批量链接
-                    </button>
+                    <div class="links-stats">
+                        <span>管理面板</span>
+                        <div>
+                            <button id="export-btn" class="secondary" style="padding: 6px 12px; margin-right: 8px;">
+                                <i class="fas fa-download"></i> 导出
+                            </button>
+                            <button id="clear-all-btn" class="danger" style="padding: 6px 12px;">
+                                <i class="fas fa-trash"></i> 清空全部
+                            </button>
+                        </div>
+                    </div>
                 </div>
+            </div>
+            
+            <!-- 右侧：链接列表 -->
+            <section class="links-section">
+                <h2 class="section-title"><i class="fas fa-play-circle"></i> 播放列表</h2>
                 
                 <div class="links-list-container">
                     <ul class="links-list" id="links-list">
@@ -659,19 +752,14 @@ https://example.com/agatha_s1e3.m3u8"></textarea>
                     <div id="empty-state" class="empty-state">
                         <i class="fas fa-film"></i>
                         <p>还没有添加任何链接</p>
-                        <p style="margin-top: 5px; font-size: 0.85rem;">使用上方功能添加流媒体链接</p>
+                        <p style="margin-top: 5px; font-size: 0.85rem;">使用左侧管理面板添加流媒体链接</p>
                     </div>
                 </div>
                 
                 <div class="links-stats">
                     <span id="links-count">共 0 个链接</span>
-                    <div>
-                        <button id="export-btn" class="secondary" style="padding: 6px 12px; margin-right: 8px;">
-                            <i class="fas fa-download"></i> 导出
-                        </button>
-                        <button id="clear-all-btn" class="danger" style="padding: 6px 12px;">
-                            <i class="fas fa-trash"></i> 清空
-                        </button>
+                    <div id="current-playing">
+                        <span id="now-playing-text">未播放</span>
                     </div>
                 </div>
             </section>
@@ -700,28 +788,37 @@ https://example.com/agatha_s1e3.m3u8"></textarea>
         });
         
         // 获取DOM元素
-        const singleUrlInput = document.getElementById('single-url');
-        const baseTitleSingleInput = document.getElementById('base-title-single');
-        const seasonSingleInput = document.getElementById('season-single');
-        const episodeSingleInput = document.getElementById('episode-single');
-        
-        const baseTitleBatchInput = document.getElementById('base-title-batch');
+        // 自动识别相关元素
+        const baseTitleAutoInput = document.getElementById('base-title-auto');
         const batchUrlsInput = document.getElementById('batch-urls');
-        const seasonBatchInput = document.getElementById('season-batch');
+        const seasonAutoInput = document.getElementById('season-auto');
         const startEpisodeInput = document.getElementById('start-episode');
+        const autoPreviewContainer = document.getElementById('auto-preview');
+        const autoPreviewList = document.getElementById('auto-preview-list');
+        const autoPreviewCount = document.getElementById('auto-preview-count');
         
-        const previewContainer = document.getElementById('batch-preview');
-        const previewList = document.getElementById('preview-list');
-        const previewCount = document.getElementById('preview-count');
+        // 手动识别相关元素
+        const baseTitleManualInput = document.getElementById('base-title-manual');
+        const manualUrlsInput = document.getElementById('manual-urls');
+        const seasonManualInput = document.getElementById('season-manual');
+        const startEpisodeManualInput = document.getElementById('start-episode-manual');
+        const episodeStepInput = document.getElementById('episode-step');
+        const manualPreviewContainer = document.getElementById('manual-preview');
+        const manualPreviewList = document.getElementById('manual-preview-list');
+        const manualPreviewCount = document.getElementById('manual-preview-count');
         
+        // 控制按钮
         const playBtn = document.getElementById('play-btn');
         const pauseBtn = document.getElementById('pause-btn');
         const fullscreenBtn = document.getElementById('fullscreen-btn');
         const prevBtn = document.getElementById('prev-btn');
         const nextBtn = document.getElementById('next-btn');
-        const addSingleBtn = document.getElementById('add-single-btn');
-        const generateBatchBtn = document.getElementById('generate-batch-btn');
-        const addBatchBtn = document.getElementById('add-batch-btn');
+        const generateAutoBtn = document.getElementById('generate-auto-btn');
+        const addAutoBtn = document.getElementById('add-auto-btn');
+        const clearAutoBtn = document.getElementById('clear-auto-btn');
+        const generateManualBtn = document.getElementById('generate-manual-btn');
+        const addManualBtn = document.getElementById('add-manual-btn');
+        const clearManualBtn = document.getElementById('clear-manual-btn');
         const exportBtn = document.getElementById('export-btn');
         const clearAllBtn = document.getElementById('clear-all-btn');
         const statusDot = document.getElementById('status-dot');
@@ -730,12 +827,14 @@ https://example.com/agatha_s1e3.m3u8"></textarea>
         const linksList = document.getElementById('links-list');
         const emptyState = document.getElementById('empty-state');
         const linksCount = document.getElementById('links-count');
+        const nowPlayingText = document.getElementById('now-playing-text');
         
         const tabs = document.querySelectorAll('.tab');
         const tabContents = document.querySelectorAll('.tab-content');
         
         // 当前批量链接预览数据
-        let batchPreviewData = [];
+        let autoPreviewData = [];
+        let manualPreviewData = [];
         
         // 流媒体链接管理类
         class StreamLinksManager {
@@ -874,53 +973,6 @@ https://example.com/agatha_s1e3.m3u8"></textarea>
                 return `${baseTitle} S${season}E${episode}`;
             }
             
-            // 添加单个链接
-            addSingleLink(url, baseTitle = '', season = null, episode = null) {
-                if (!url.trim()) {
-                    alert('请输入有效的URL地址');
-                    return false;
-                }
-                
-                // 检查是否已存在相同URL
-                if (this.links.some(link => link.url === url.trim())) {
-                    alert('该URL已存在于列表中');
-                    return false;
-                }
-                
-                // 提取标题信息
-                const titleInfo = this.extractTitleInfo(url, baseTitle, 
-                    season !== null ? parseInt(season) : 1, 
-                    episode !== null ? parseInt(episode) : 1);
-                
-                // 如果用户提供了季和集，则使用用户提供的值
-                if (season !== null) titleInfo.season = parseInt(season) || titleInfo.season;
-                if (episode !== null) titleInfo.episode = parseInt(episode) || titleInfo.episode;
-                
-                // 格式化最终标题
-                const finalTitle = this.formatTitle(titleInfo.baseTitle, titleInfo.season, titleInfo.episode);
-                
-                const link = {
-                    id: Date.now() + Math.random(),
-                    title: finalTitle,
-                    baseTitle: titleInfo.baseTitle,
-                    season: titleInfo.season,
-                    episode: titleInfo.episode,
-                    url: url.trim(),
-                    addedAt: new Date().toLocaleString()
-                };
-                
-                this.links.push(link);
-                this.saveToLocalStorage();
-                this.updateUI();
-                
-                // 如果是第一个链接，设置为当前播放
-                if (this.links.length === 1) {
-                    this.setCurrentLink(0);
-                }
-                
-                return true;
-            }
-            
             // 批量添加链接
             addBatchLinks(links) {
                 if (!links || links.length === 0) {
@@ -1009,6 +1061,46 @@ https://example.com/agatha_s1e3.m3u8"></textarea>
                 return results;
             }
             
+            // 手动识别批量URL
+            manualBatchParse(urlsText, baseTitle, season, startEpisode, episodeStep = 1) {
+                const urls = urlsText.trim().split('\n')
+                    .map(url => url.trim())
+                    .filter(url => url.length > 0);
+                
+                if (urls.length === 0) {
+                    return [];
+                }
+                
+                const results = [];
+                let episodeCounter = parseInt(startEpisode) || 1;
+                const step = parseInt(episodeStep) || 1;
+                
+                urls.forEach((url, index) => {
+                    // 提取基础标题（如果需要）
+                    let finalBaseTitle = baseTitle;
+                    if (!finalBaseTitle) {
+                        finalBaseTitle = this.extractBaseTitleFromUrl(url);
+                    }
+                    
+                    // 格式化标题
+                    const finalTitle = this.formatTitle(finalBaseTitle, season, episodeCounter);
+                    
+                    results.push({
+                        id: Date.now() + Math.random() + index,
+                        title: finalTitle,
+                        baseTitle: finalBaseTitle,
+                        season: parseInt(season) || 1,
+                        episode: episodeCounter,
+                        url: url,
+                        addedAt: new Date().toLocaleString()
+                    });
+                    
+                    episodeCounter += step;
+                });
+                
+                return results;
+            }
+            
             // 按季和集排序链接
             sortLinks() {
                 this.links.sort((a, b) => {
@@ -1036,6 +1128,7 @@ https://example.com/agatha_s1e3.m3u8"></textarea>
                         player.pause();
                         updateStatus('链接已删除', false);
                         currentFormat.textContent = '未加载';
+                        nowPlayingText.textContent = '未播放';
                     } else if (this.currentIndex > index) {
                         // 调整当前索引
                         this.currentIndex--;
@@ -1058,6 +1151,7 @@ https://example.com/agatha_s1e3.m3u8"></textarea>
                     player.pause();
                     updateStatus('所有链接已删除', false);
                     currentFormat.textContent = '未加载';
+                    nowPlayingText.textContent = '未播放';
                 }
             }
             
@@ -1066,6 +1160,9 @@ https://example.com/agatha_s1e3.m3u8"></textarea>
                 if (index >= 0 && index < this.links.length) {
                     this.currentIndex = index;
                     const link = this.links[index];
+                    
+                    // 更新当前播放显示
+                    nowPlayingText.textContent = `${link.title}`;
                     
                     // 播放该链接
                     playStream(link.url);
@@ -1137,7 +1234,6 @@ https://example.com/agatha_s1e3.m3u8"></textarea>
                                     ${link.title}
                                 </div>
                                 <div class="link-url">${link.url}</div>
-                                <div style="font-size: 0.8rem; color: #888; margin-top: 3px;">${link.addedAt}</div>
                             </div>
                             <div class="link-actions">
                                 <button class="link-btn play" data-id="${link.id}">
@@ -1244,11 +1340,11 @@ https://example.com/agatha_s1e3.m3u8"></textarea>
             });
         }
         
-        // 智能识别并生成批量预览
-        function generateBatchPreview() {
-            const baseTitle = baseTitleBatchInput.value.trim();
+        // 自动识别并生成预览
+        function generateAutoPreview() {
+            const baseTitle = baseTitleAutoInput.value.trim();
             const urlsText = batchUrlsInput.value.trim();
-            const defaultSeason = parseInt(seasonBatchInput.value) || 1;
+            const defaultSeason = parseInt(seasonAutoInput.value) || 1;
             const startEpisode = parseInt(startEpisodeInput.value) || 1;
             
             if (!urlsText) {
@@ -1257,23 +1353,23 @@ https://example.com/agatha_s1e3.m3u8"></textarea>
             }
             
             // 智能识别
-            batchPreviewData = linksManager.intelligentBatchParse(
+            autoPreviewData = linksManager.intelligentBatchParse(
                 urlsText, 
                 baseTitle, 
                 defaultSeason, 
                 startEpisode
             );
             
-            if (batchPreviewData.length === 0) {
+            if (autoPreviewData.length === 0) {
                 alert('未能识别到有效的URL');
                 return;
             }
             
             // 清空预览
-            previewList.innerHTML = '';
+            autoPreviewList.innerHTML = '';
             
             // 生成预览
-            batchPreviewData.forEach((item, index) => {
+            autoPreviewData.forEach((item, index) => {
                 const previewItem = document.createElement('div');
                 previewItem.className = 'preview-item';
                 previewItem.innerHTML = `
@@ -1285,18 +1381,77 @@ https://example.com/agatha_s1e3.m3u8"></textarea>
                     </div>
                     <div class="preview-item-url">${item.url}</div>
                 `;
-                previewList.appendChild(previewItem);
+                autoPreviewList.appendChild(previewItem);
             });
             
             // 更新计数
-            previewCount.textContent = `共 ${batchPreviewData.length} 个链接`;
+            autoPreviewCount.textContent = `共 ${autoPreviewData.length} 个链接`;
             
-            // 显示预览
-            previewContainer.style.display = 'block';
-            addBatchBtn.style.display = 'block';
+            // 显示预览和按钮
+            autoPreviewContainer.style.display = 'block';
+            addAutoBtn.style.display = 'flex';
+            clearAutoBtn.style.display = 'flex';
             
             // 滚动到预览区域
-            previewContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            autoPreviewContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+        
+        // 手动识别并生成预览
+        function generateManualPreview() {
+            const baseTitle = baseTitleManualInput.value.trim();
+            const urlsText = manualUrlsInput.value.trim();
+            const season = parseInt(seasonManualInput.value) || 1;
+            const startEpisode = parseInt(startEpisodeManualInput.value) || 1;
+            const episodeStep = parseInt(episodeStepInput.value) || 1;
+            
+            if (!urlsText) {
+                alert('请输入批量URL列表');
+                return;
+            }
+            
+            // 手动识别
+            manualPreviewData = linksManager.manualBatchParse(
+                urlsText, 
+                baseTitle, 
+                season, 
+                startEpisode,
+                episodeStep
+            );
+            
+            if (manualPreviewData.length === 0) {
+                alert('未能识别到有效的URL');
+                return;
+            }
+            
+            // 清空预览
+            manualPreviewList.innerHTML = '';
+            
+            // 生成预览
+            manualPreviewData.forEach((item, index) => {
+                const previewItem = document.createElement('div');
+                previewItem.className = 'preview-item';
+                previewItem.innerHTML = `
+                    <div class="preview-item-title">
+                        <span style="color: #4cc9f0; font-size: 0.85rem; background: rgba(76, 201, 240, 0.1); padding: 2px 6px; border-radius: 4px; margin-right: 8px;">
+                            S${item.season}E${item.episode}
+                        </span>
+                        ${item.title}
+                    </div>
+                    <div class="preview-item-url">${item.url}</div>
+                `;
+                manualPreviewList.appendChild(previewItem);
+            });
+            
+            // 更新计数
+            manualPreviewCount.textContent = `共 ${manualPreviewData.length} 个链接`;
+            
+            // 显示预览和按钮
+            manualPreviewContainer.style.display = 'block';
+            addManualBtn.style.display = 'flex';
+            clearManualBtn.style.display = 'flex';
+            
+            // 滚动到预览区域
+            manualPreviewContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
         
         // 事件监听器
@@ -1319,45 +1474,58 @@ https://example.com/agatha_s1e3.m3u8"></textarea>
             });
         });
         
-        // 单个添加
-        addSingleBtn.addEventListener('click', function() {
-            const url = singleUrlInput.value.trim();
-            const baseTitle = baseTitleSingleInput.value.trim();
-            const season = seasonSingleInput.value;
-            const episode = episodeSingleInput.value;
-            
-            if (linksManager.addSingleLink(url, baseTitle, season, episode)) {
-                // 清空输入框
-                singleUrlInput.value = '';
-                baseTitleSingleInput.value = '';
-                seasonSingleInput.value = '1';
-                episodeSingleInput.value = '1';
-            }
-        });
+        // 自动识别生成预览
+        generateAutoBtn.addEventListener('click', generateAutoPreview);
         
-        // 生成批量预览
-        generateBatchBtn.addEventListener('click', generateBatchPreview);
-        
-        // 添加批量链接
-        addBatchBtn.addEventListener('click', function() {
-            if (batchPreviewData.length === 0) {
+        // 添加自动识别结果
+        addAutoBtn.addEventListener('click', function() {
+            if (autoPreviewData.length === 0) {
                 alert('请先生成预览');
                 return;
             }
             
-            if (linksManager.addBatchLinks(batchPreviewData)) {
-                // 清空输入框和预览
-                baseTitleBatchInput.value = '';
-                batchUrlsInput.value = '';
-                seasonBatchInput.value = '1';
-                startEpisodeInput.value = '1';
-                previewContainer.style.display = 'none';
-                addBatchBtn.style.display = 'none';
-                batchPreviewData = [];
-                
-                // 自动切换到列表视图
-                document.querySelector('[data-tab="single-tab"]').click();
+            if (linksManager.addBatchLinks(autoPreviewData)) {
+                // 清空预览
+                autoPreviewContainer.style.display = 'none';
+                addAutoBtn.style.display = 'none';
+                clearAutoBtn.style.display = 'none';
+                autoPreviewData = [];
             }
+        });
+        
+        // 清空自动识别预览
+        clearAutoBtn.addEventListener('click', function() {
+            autoPreviewContainer.style.display = 'none';
+            addAutoBtn.style.display = 'none';
+            clearAutoBtn.style.display = 'none';
+            autoPreviewData = [];
+        });
+        
+        // 手动识别生成预览
+        generateManualBtn.addEventListener('click', generateManualPreview);
+        
+        // 添加手动识别结果
+        addManualBtn.addEventListener('click', function() {
+            if (manualPreviewData.length === 0) {
+                alert('请先生成预览');
+                return;
+            }
+            
+            if (linksManager.addBatchLinks(manualPreviewData)) {
+                // 清空预览
+                manualPreviewContainer.style.display = 'none';
+                addManualBtn.style.display = 'none';
+                clearManualBtn.style.display = 'none';
+                manualPreviewData = [];
+            }
+        });
+        
+        // 清空手动识别预览
+        clearManualBtn.addEventListener('click', function() {
+            manualPreviewContainer.style.display = 'none';
+            addManualBtn.style.display = 'none';
+            clearManualBtn.style.display = 'none';
+            manualPreviewData = [];
         });
         
         // 播放控制
@@ -1365,8 +1533,11 @@ https://example.com/agatha_s1e3.m3u8"></textarea>
             if (linksManager.currentIndex >= 0) {
                 const url = linksManager.links[linksManager.currentIndex].url;
                 playStream(url);
+            } else if (linksManager.links.length > 0) {
+                // 如果没有当前播放的链接，播放第一个
+                linksManager.setCurrentLink(0);
             } else {
-                alert('请先选择一个要播放的链接');
+                alert('请先添加要播放的链接');
             }
         });
         
@@ -1402,13 +1573,6 @@ https://example.com/agatha_s1e3.m3u8"></textarea>
         
         clearAllBtn.addEventListener('click', function() {
             linksManager.clearAllLinks();
-        });
-        
-        // 输入框回车键支持
-        singleUrlInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                addSingleBtn.click();
-            }
         });
         
         // 添加快捷键支持
@@ -1452,25 +1616,32 @@ https://example.com/agatha_s1e3.m3u8"></textarea>
         window.addEventListener('DOMContentLoaded', function() {
             updateStatus('准备播放', false);
             
-            // 设置批量添加示例
-            baseTitleBatchInput.value = '';
-            seasonBatchInput.value = '1';
+            // 设置自动识别示例
+            baseTitleAutoInput.value = '阿加莎克里斯蒂之七面钟';
+            seasonAutoInput.value = '1';
             startEpisodeInput.value = '1';
             
-            // 设置批量URL示例
+            // 设置自动识别URL示例
             batchUrlsInput.value = 
-``;
+`https://example.com/agatha_christie_season1_episode01.m3u8
+https://example.com/agatha_christie_s01e02.m3u8
+https://example.com/agatha_christie_S1E03.m3u8
+https://example.com/agatha_christie_1x04.m3u8
+https://example.com/agatha_christie_season1_episode05.m3u8`;
             
-            // 设置单个添加示例
-            baseTitleSingleInput.value = '';
-            seasonSingleInput.value = '1';
-            episodeSingleInput.value = '1';
+            // 设置手动识别示例
+            baseTitleManualInput.value = '阿加莎克里斯蒂之七面钟';
+            seasonManualInput.value = '1';
+            startEpisodeManualInput.value = '1';
+            episodeStepInput.value = '1';
             
-            // 如果列表为空，添加一些示例链接
-            if (linksManager.links.length === 0) {
-                // 可以在这里添加一些初始示例链接
-                // linksManager.addSingleLink('https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8', '测试HLS流', 1, 1);
-            }
+            // 设置手动识别URL示例
+            manualUrlsInput.value = 
+`https://example.com/agatha_ep1.m3u8
+https://example.com/agatha_ep2.m3u8
+https://example.com/agatha_ep3.m3u8
+https://example.com/agatha_ep4.m3u8
+https://example.com/agatha_ep5.m3u8`;
         });
     </script>
 </body>
