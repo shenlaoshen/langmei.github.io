@@ -1,0 +1,965 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>流媒体播放器 - 支持HLS、M3U8、MP4</title>
+    <link href="https://vjs.zencdn.net/7.20.3/video-js.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #f0f0f0;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        h1 {
+            font-size: 2.2rem;
+            margin-bottom: 5px;
+            background: linear-gradient(90deg, #4cc9f0, #4361ee);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            display: inline-block;
+        }
+        
+        .subtitle {
+            color: #a0a0c0;
+            font-size: 1rem;
+        }
+        
+        .main-layout {
+            display: flex;
+            gap: 25px;
+        }
+        
+        @media (max-width: 1024px) {
+            .main-layout {
+                flex-direction: column;
+            }
+        }
+        
+        .player-section {
+            flex: 2;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+        }
+        
+        .player-wrapper {
+            position: relative;
+            padding-top: 56.25%; /* 16:9 Aspect Ratio */
+            border-radius: 10px;
+            overflow: hidden;
+            background-color: #000;
+        }
+        
+        #my-video {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        
+        .controls-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        button {
+            padding: 10px 18px;
+            border: none;
+            border-radius: 8px;
+            background: linear-gradient(90deg, #4361ee, #3a0ca3);
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 0.9rem;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(67, 97, 238, 0.4);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        button.secondary {
+            background: linear-gradient(90deg, #7209b7, #560bad);
+        }
+        
+        button.success {
+            background: linear-gradient(90deg, #4cc9f0, #4895ef);
+        }
+        
+        button.danger {
+            background: linear-gradient(90deg, #f72585, #b5179e);
+        }
+        
+        .status-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: #4caf50;
+        }
+        
+        .status-dot.inactive {
+            background-color: #f44336;
+        }
+        
+        .format-display {
+            padding: 6px 12px;
+            background: rgba(76, 201, 240, 0.2);
+            color: #4cc9f0;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        
+        /* 批量链接管理模块样式 */
+        .links-section {
+            flex: 1;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .section-title {
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            color: #4cc9f0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .section-title i {
+            font-size: 1.2rem;
+        }
+        
+        .url-input-container {
+            margin-bottom: 20px;
+        }
+        
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+        
+        label {
+            color: #b0b0d0;
+            font-weight: 500;
+            font-size: 0.95rem;
+        }
+        
+        input[type="url"], input[type="text"] {
+            padding: 12px 15px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(0, 0, 0, 0.5);
+            color: white;
+            font-size: 0.95rem;
+            transition: all 0.3s;
+            width: 100%;
+        }
+        
+        input[type="url"]:focus, input[type="text"]:focus {
+            outline: none;
+            border-color: #4cc9f0;
+            box-shadow: 0 0 0 2px rgba(76, 201, 240, 0.2);
+        }
+        
+        .input-with-button {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .input-with-button input {
+            flex: 1;
+        }
+        
+        .links-list-container {
+            flex: 1;
+            overflow-y: auto;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .links-list {
+            list-style-type: none;
+        }
+        
+        .link-item {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            padding: 12px 15px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.2s;
+            border-left: 4px solid #4361ee;
+        }
+        
+        .link-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .link-item.active {
+            border-left-color: #4cc9f0;
+            background: rgba(76, 201, 240, 0.1);
+        }
+        
+        .link-info {
+            flex: 1;
+            overflow: hidden;
+        }
+        
+        .link-title {
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #fff;
+            font-size: 0.95rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .link-url {
+            font-size: 0.85rem;
+            color: #a0a0c0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .link-actions {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .link-btn {
+            padding: 6px 10px;
+            font-size: 0.8rem;
+            border-radius: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: white;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .link-btn.play {
+            background: rgba(76, 201, 240, 0.3);
+        }
+        
+        .link-btn.play:hover {
+            background: rgba(76, 201, 240, 0.5);
+        }
+        
+        .link-btn.delete {
+            background: rgba(247, 37, 133, 0.3);
+        }
+        
+        .link-btn.delete:hover {
+            background: rgba(247, 37, 133, 0.5);
+        }
+        
+        .links-stats {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 0.9rem;
+            color: #b0b0d0;
+        }
+        
+        footer {
+            margin-top: 30px;
+            text-align: center;
+            color: #888;
+            font-size: 0.85rem;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #888;
+        }
+        
+        .empty-state i {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+            color: #555;
+        }
+        
+        @media (max-width: 768px) {
+            .main-layout {
+                gap: 15px;
+            }
+            
+            .player-section, .links-section {
+                padding: 15px;
+            }
+            
+            .controls-bar {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .button-group {
+                width: 100%;
+                justify-content: stretch;
+            }
+            
+            button {
+                flex: 1;
+            }
+            
+            .input-with-button {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-video"></i> 流媒体播放器</h1>
+            <p class="subtitle">支持HLS、M3U8、MP4格式 | 批量链接管理</p>
+        </header>
+        
+        <div class="main-layout">
+            <section class="player-section">
+                <div class="player-wrapper">
+                    <video
+                        id="my-video"
+                        class="video-js vjs-default-skin vjs-big-play-centered"
+                        controls
+                        preload="auto"
+                        poster="https://images.unsplash.com/photo-1536240478700-b869070f9279?ixlib=rb-4.0.3&auto=format&fit=crop&w=1600&q=80"
+                        data-setup='{}'>
+                        <p class="vjs-no-js">
+                            您的浏览器不支持HTML5视频播放，请升级浏览器或尝试使用其他浏览器。
+                        </p>
+                    </video>
+                </div>
+                
+                <div class="controls-bar">
+                    <div class="button-group">
+                        <button id="play-btn" class="success">
+                            <i class="fas fa-play"></i> 播放
+                        </button>
+                        <button id="pause-btn" class="secondary">
+                            <i class="fas fa-pause"></i> 暂停
+                        </button>
+                        <button id="fullscreen-btn">
+                            <i class="fas fa-expand"></i> 全屏
+                        </button>
+                        <button id="prev-btn">
+                            <i class="fas fa-backward"></i> 上一个
+                        </button>
+                        <button id="next-btn">
+                            <i class="fas fa-forward"></i> 下一个
+                        </button>
+                    </div>
+                    
+                    <div class="status-info">
+                        <div class="status-indicator">
+                            <div class="status-dot" id="status-dot"></div>
+                            <span id="status-text">准备播放</span>
+                        </div>
+                        <div class="format-display" id="current-format">未加载</div>
+                    </div>
+                </div>
+            </section>
+            
+            <section class="links-section">
+                <h2 class="section-title"><i class="fas fa-list"></i> 链接管理</h2>
+                
+                <div class="url-input-container">
+                    <div class="input-group">
+                        <label for="link-title"><i class="fas fa-heading"></i> 链接标题</label>
+                        <input type="text" id="link-title" placeholder="输入链接标题 (可选)">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="link-url"><i class="fas fa-link"></i> 流媒体URL</label>
+                        <div class="input-with-button">
+                            <input type="url" id="link-url" placeholder="输入HLS (.m3u8) 或 MP4 流媒体地址...">
+                            <button id="add-link-btn" class="success">
+                                <i class="fas fa-plus"></i> 添加
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="links-list-container">
+                    <ul class="links-list" id="links-list">
+                        <!-- 链接项将通过JavaScript动态添加 -->
+                    </ul>
+                    
+                    <div id="empty-state" class="empty-state">
+                        <i class="fas fa-film"></i>
+                        <p>还没有添加任何链接</p>
+                        <p style="margin-top: 5px; font-size: 0.85rem;">点击上方"添加"按钮添加您的第一个流媒体链接</p>
+                    </div>
+                </div>
+                
+                <div class="links-stats">
+                    <span id="links-count">共 0 个链接</span>
+                    <button id="clear-all-btn" class="danger" style="padding: 6px 12px;">
+                        <i class="fas fa-trash"></i> 清空全部
+                    </button>
+                </div>
+            </section>
+        </div>
+        
+        <footer>
+            <p>流媒体播放器 &copy; 2023 | 支持HLS、M3U8、MP4格式 | 链接自动保存到本地存储</p>
+        </footer>
+    </div>
+
+    <script src="https://vjs.zencdn.net/7.20.3/video.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/videojs-contrib-hls@1.0.0/dist/videojs-contrib-hls.min.js"></script>
+    <script>
+        // 初始化Video.js播放器
+        const player = videojs('my-video', {
+            controls: true,
+            autoplay: false,
+            preload: 'auto',
+            fluid: true,
+            html5: {
+                vhs: {
+                    overrideNative: true,
+                    enableLowInitialPlaylist: true
+                }
+            }
+        });
+        
+        // 获取DOM元素
+        const streamUrlInput = document.getElementById('link-url');
+        const linkTitleInput = document.getElementById('link-title');
+        const playBtn = document.getElementById('play-btn');
+        const pauseBtn = document.getElementById('pause-btn');
+        const fullscreenBtn = document.getElementById('fullscreen-btn');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const addLinkBtn = document.getElementById('add-link-btn');
+        const clearAllBtn = document.getElementById('clear-all-btn');
+        const statusDot = document.getElementById('status-dot');
+        const statusText = document.getElementById('status-text');
+        const currentFormat = document.getElementById('current-format');
+        const linksList = document.getElementById('links-list');
+        const emptyState = document.getElementById('empty-state');
+        const linksCount = document.getElementById('links-count');
+        
+        // 流媒体链接管理类
+        class StreamLinksManager {
+            constructor() {
+                this.links = [];
+                this.currentIndex = -1;
+                this.loadFromLocalStorage();
+            }
+            
+            // 从本地存储加载链接
+            loadFromLocalStorage() {
+                const savedLinks = localStorage.getItem('streamLinks');
+                if (savedLinks) {
+                    try {
+                        this.links = JSON.parse(savedLinks);
+                        this.updateUI();
+                    } catch (e) {
+                        console.error('解析本地存储数据失败:', e);
+                        this.links = [];
+                    }
+                }
+            }
+            
+            // 保存到本地存储
+            saveToLocalStorage() {
+                localStorage.setItem('streamLinks', JSON.stringify(this.links));
+            }
+            
+            // 添加新链接
+            addLink(title, url) {
+                if (!url.trim()) {
+                    alert('请输入有效的URL地址');
+                    return false;
+                }
+                
+                // 检查是否已存在相同URL
+                if (this.links.some(link => link.url === url)) {
+                    alert('该URL已存在于列表中');
+                    return false;
+                }
+                
+                const link = {
+                    id: Date.now(),
+                    title: title.trim() || this.generateDefaultTitle(url),
+                    url: url.trim(),
+                    addedAt: new Date().toLocaleString()
+                };
+                
+                this.links.push(link);
+                this.saveToLocalStorage();
+                this.updateUI();
+                
+                // 如果是第一个链接，设置为当前播放
+                if (this.links.length === 1) {
+                    this.setCurrentLink(0);
+                }
+                
+                return true;
+            }
+            
+            // 生成默认标题
+            generateDefaultTitle(url) {
+                // 尝试从URL中提取有意义的名称
+                try {
+                    const urlObj = new URL(url);
+                    let title = urlObj.hostname;
+                    
+                    // 如果是常见流媒体格式，添加格式信息
+                    if (url.includes('.m3u8')) {
+                        title += ' (HLS)';
+                    } else if (url.includes('.mp4')) {
+                        title += ' (MP4)';
+                    }
+                    
+                    return title;
+                } catch (e) {
+                    // 如果不是有效的URL，返回简化的文件名
+                    const lastSegment = url.split('/').pop();
+                    return lastSegment.length > 30 ? lastSegment.substring(0, 30) + '...' : lastSegment;
+                }
+            }
+            
+            // 删除链接
+            removeLink(id) {
+                const index = this.links.findIndex(link => link.id === id);
+                if (index !== -1) {
+                    this.links.splice(index, 1);
+                    
+                    // 如果删除的是当前播放的链接
+                    if (this.currentIndex === index) {
+                        this.currentIndex = -1;
+                        player.pause();
+                        updateStatus('链接已删除', false);
+                        currentFormat.textContent = '未加载';
+                    } else if (this.currentIndex > index) {
+                        // 调整当前索引
+                        this.currentIndex--;
+                    }
+                    
+                    this.saveToLocalStorage();
+                    this.updateUI();
+                }
+            }
+            
+            // 清空所有链接
+            clearAllLinks() {
+                if (this.links.length === 0) return;
+                
+                if (confirm('确定要删除所有链接吗？此操作不可撤销。')) {
+                    this.links = [];
+                    this.currentIndex = -1;
+                    this.saveToLocalStorage();
+                    this.updateUI();
+                    player.pause();
+                    updateStatus('所有链接已删除', false);
+                    currentFormat.textContent = '未加载';
+                }
+            }
+            
+            // 设置当前播放的链接
+            setCurrentLink(index) {
+                if (index >= 0 && index < this.links.length) {
+                    this.currentIndex = index;
+                    const link = this.links[index];
+                    streamUrlInput.value = link.url;
+                    linkTitleInput.value = link.title;
+                    
+                    // 播放该链接
+                    playStream(link.url);
+                    
+                    // 更新UI中的活动状态
+                    this.updateUI();
+                }
+            }
+            
+            // 播放上一个链接
+            playPrev() {
+                if (this.links.length === 0) return;
+                
+                let newIndex = this.currentIndex - 1;
+                if (newIndex < 0) {
+                    newIndex = this.links.length - 1; // 循环到最后一个
+                }
+                
+                this.setCurrentLink(newIndex);
+            }
+            
+            // 播放下一个链接
+            playNext() {
+                if (this.links.length === 0) return;
+                
+                let newIndex = this.currentIndex + 1;
+                if (newIndex >= this.links.length) {
+                    newIndex = 0; // 循环到第一个
+                }
+                
+                this.setCurrentLink(newIndex);
+            }
+            
+            // 更新UI
+            updateUI() {
+                // 更新链接列表
+                linksList.innerHTML = '';
+                
+                if (this.links.length === 0) {
+                    emptyState.style.display = 'block';
+                } else {
+                    emptyState.style.display = 'none';
+                    
+                    this.links.forEach((link, index) => {
+                        const li = document.createElement('li');
+                        li.className = `link-item ${index === this.currentIndex ? 'active' : ''}`;
+                        li.innerHTML = `
+                            <div class="link-info">
+                                <div class="link-title">${link.title}</div>
+                                <div class="link-url">${link.url}</div>
+                                <div style="font-size: 0.8rem; color: #888; margin-top: 3px;">${link.addedAt}</div>
+                            </div>
+                            <div class="link-actions">
+                                <button class="link-btn play" data-id="${link.id}">
+                                    <i class="fas fa-play"></i>
+                                </button>
+                                <button class="link-btn delete" data-id="${link.id}">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        `;
+                        
+                        // 添加播放事件
+                        li.querySelector('.play').addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            this.setCurrentLink(index);
+                        });
+                        
+                        // 添加删除事件
+                        li.querySelector('.delete').addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            this.removeLink(link.id);
+                        });
+                        
+                        // 点击整个项也可以播放
+                        li.addEventListener('click', () => {
+                            this.setCurrentLink(index);
+                        });
+                        
+                        linksList.appendChild(li);
+                    });
+                }
+                
+                // 更新链接计数
+                linksCount.textContent = `共 ${this.links.length} 个链接`;
+            }
+            
+            // 导出链接
+            exportLinks() {
+                const dataStr = JSON.stringify(this.links, null, 2);
+                const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+                
+                const exportFileDefaultName = 'stream-links.json';
+                
+                const linkElement = document.createElement('a');
+                linkElement.setAttribute('href', dataUri);
+                linkElement.setAttribute('download', exportFileDefaultName);
+                linkElement.click();
+            }
+            
+            // 导入链接
+            importLinks(file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        const importedLinks = JSON.parse(e.target.result);
+                        if (Array.isArray(importedLinks)) {
+                            // 验证导入的数据格式
+                            const validLinks = importedLinks.filter(link => 
+                                link && link.url && typeof link.url === 'string'
+                            );
+                            
+                            if (validLinks.length > 0) {
+                                // 合并现有链接和导入链接，避免重复
+                                const existingUrls = new Set(this.links.map(link => link.url));
+                                const newLinks = validLinks.filter(link => !existingUrls.has(link.url));
+                                
+                                if (newLinks.length > 0) {
+                                    this.links = [...this.links, ...newLinks];
+                                    this.saveToLocalStorage();
+                                    this.updateUI();
+                                    alert(`成功导入 ${newLinks.length} 个链接`);
+                                } else {
+                                    alert('没有发现新的链接，所有链接都已存在');
+                                }
+                            } else {
+                                alert('导入的文件中没有有效的链接数据');
+                            }
+                        } else {
+                            alert('导入的文件格式不正确');
+                        }
+                    } catch (error) {
+                        alert('导入失败：文件格式不正确');
+                    }
+                };
+                reader.readAsText(file);
+            }
+        }
+        
+        // 初始化链接管理器
+        const linksManager = new StreamLinksManager();
+        
+        // 更新状态显示
+        function updateStatus(status, isActive = true) {
+            statusText.textContent = status;
+            statusDot.classList.toggle('inactive', !isActive);
+        }
+        
+        // 检测URL格式
+        function detectFormat(url) {
+            if (url.includes('.m3u8')) {
+                return 'HLS (M3U8)';
+            } else if (url.includes('.mp4')) {
+                return 'MP4';
+            } else if (url.includes('.mpd')) {
+                return 'MPEG-DASH';
+            } else {
+                return '未知格式';
+            }
+        }
+        
+        // 播放流媒体
+        function playStream(url) {
+            if (!url) {
+                updateStatus('请输入URL', false);
+                return;
+            }
+            
+            updateStatus('正在加载...', true);
+            
+            // 检测格式并更新显示
+            const format = detectFormat(url);
+            currentFormat.textContent = `格式: ${format}`;
+            
+            // 设置播放器源
+            player.src({
+                src: url,
+                type: format.includes('HLS') ? 'application/x-mpegURL' : 'video/mp4'
+            });
+            
+            // 播放视频
+            player.ready(function() {
+                player.play().then(() => {
+                    updateStatus('正在播放', true);
+                }).catch(error => {
+                    updateStatus('需要点击播放按钮', false);
+                    console.log('自动播放被阻止，等待用户交互');
+                });
+            });
+            
+            // 监听播放器事件
+            player.on('loadeddata', function() {
+                updateStatus('已加载', true);
+            });
+            
+            player.on('error', function() {
+                updateStatus('播放错误', false);
+            });
+            
+            player.on('waiting', function() {
+                updateStatus('正在缓冲...', true);
+            });
+            
+            player.on('playing', function() {
+                updateStatus('正在播放', true);
+            });
+        }
+        
+        // 事件监听器
+        playBtn.addEventListener('click', function() {
+            const url = streamUrlInput.value.trim();
+            if (url) {
+                playStream(url);
+            } else {
+                alert('请输入要播放的URL地址');
+            }
+        });
+        
+        pauseBtn.addEventListener('click', function() {
+            if (player.paused()) {
+                player.play();
+                updateStatus('正在播放', true);
+            } else {
+                player.pause();
+                updateStatus('已暂停', false);
+            }
+        });
+        
+        fullscreenBtn.addEventListener('click', function() {
+            if (player.isFullscreen()) {
+                player.exitFullscreen();
+            } else {
+                player.requestFullscreen();
+            }
+        });
+        
+        prevBtn.addEventListener('click', function() {
+            linksManager.playPrev();
+        });
+        
+        nextBtn.addEventListener('click', function() {
+            linksManager.playNext();
+        });
+        
+        addLinkBtn.addEventListener('click', function() {
+            const title = linkTitleInput.value.trim();
+            const url = streamUrlInput.value.trim();
+            
+            if (linksManager.addLink(title, url)) {
+                // 清空输入框
+                linkTitleInput.value = '';
+                streamUrlInput.value = '';
+            }
+        });
+        
+        clearAllBtn.addEventListener('click', function() {
+            linksManager.clearAllLinks();
+        });
+        
+        // 输入框回车键支持
+        streamUrlInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                addLinkBtn.click();
+            }
+        });
+        
+        // 添加快捷键支持
+        document.addEventListener('keydown', function(e) {
+            // 空格键切换播放/暂停
+            if (e.code === 'Space' && !e.target.matches('input, textarea')) {
+                e.preventDefault();
+                if (player.paused()) {
+                    player.play();
+                    updateStatus('正在播放', true);
+                } else {
+                    player.pause();
+                    updateStatus('已暂停', false);
+                }
+            }
+            
+            // 左箭头播放上一个
+            if (e.code === 'ArrowLeft' && e.ctrlKey) {
+                e.preventDefault();
+                linksManager.playPrev();
+            }
+            
+            // 右箭头播放下一个
+            if (e.code === 'ArrowRight' && e.ctrlKey) {
+                e.preventDefault();
+                linksManager.playNext();
+            }
+            
+            // F键切换全屏
+            if (e.code === 'KeyF' && !e.target.matches('input, textarea')) {
+                e.preventDefault();
+                if (player.isFullscreen()) {
+                    player.exitFullscreen();
+                } else {
+                    player.requestFullscreen();
+                }
+            }
+        });
+        
+        // 页面加载时设置一个默认URL示例
+        window.addEventListener('DOMContentLoaded', function() {
+            const defaultUrl = "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8";
+            streamUrlInput.value = defaultUrl;
+            streamUrlInput.placeholder = "例如: " + defaultUrl;
+            updateStatus('准备播放', false);
+            
+            // 添加一些示例链接（如果列表为空）
+            if (linksManager.links.length === 0) {
+                // 可以在这里添加一些初始示例链接
+                // linksManager.addLink("HLS示例流", "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8");
+                // linksManager.addLink("MP4示例视频", "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4");
+            }
+        });
+    </script>
+</body>
+</html>
