@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>流媒体播放器 - 智能批量链接管理</title>
+    <title>蓝莓流媒体播放器</title>
     <link href="https://vjs.zencdn.net/7.20.3/video-js.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -188,7 +188,8 @@
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
             display: flex;
             flex-direction: column;
-            max-height: 85vh;
+            height: calc(100% - 50px); /* 调整高度，与左侧管理面板匹配 */
+            min-height: 600px; /* 设置最小高度 */
         }
         
         .section-title {
@@ -212,7 +213,8 @@
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
             display: flex;
             flex-direction: column;
-            max-height: 85vh;
+            height: calc(100% - 50px); /* 调整高度，与右侧播放列表匹配 */
+            min-height: 600px; /* 设置最小高度 */
         }
         
         .tabs {
@@ -998,8 +1000,8 @@ https://example.com/agatha_s1e3.m3u8"></textarea>
                     this.saveToLocalStorage();
                     this.updateUI();
                     
-                    // 按季和集排序
-                    this.sortLinks();
+                    // 移除自动排序功能，保持添加顺序
+                    // this.sortLinks();
                     
                     if (skippedCount > 0) {
                         alert(`成功添加 ${addedCount} 个链接，跳过 ${skippedCount} 个重复链接`);
@@ -1054,7 +1056,9 @@ https://example.com/agatha_s1e3.m3u8"></textarea>
                         season: titleInfo.season,
                         episode: titleInfo.episode,
                         url: url,
-                        addedAt: new Date().toLocaleString()
+                        addedAt: new Date().toLocaleString(),
+                        // 添加排序字段：按添加顺序
+                        order: this.links.length + index
                     });
                 });
                 
@@ -1092,7 +1096,9 @@ https://example.com/agatha_s1e3.m3u8"></textarea>
                         season: parseInt(season) || 1,
                         episode: episodeCounter,
                         url: url,
-                        addedAt: new Date().toLocaleString()
+                        addedAt: new Date().toLocaleString(),
+                        // 添加排序字段：按添加顺序
+                        order: this.links.length + index
                     });
                     
                     episodeCounter += step;
@@ -1101,15 +1107,11 @@ https://example.com/agatha_s1e3.m3u8"></textarea>
                 return results;
             }
             
-            // 按季和集排序链接
+            // 按添加顺序排序链接（默认按添加顺序，不移除排序功能但按添加时间排序）
             sortLinks() {
+                // 按添加顺序排序（order字段）
                 this.links.sort((a, b) => {
-                    // 首先按季排序
-                    if (a.season !== b.season) {
-                        return a.season - b.season;
-                    }
-                    // 然后按集排序
-                    return a.episode - b.episode;
+                    return (a.order || 0) - (b.order || 0);
                 });
                 
                 this.saveToLocalStorage();
@@ -1224,9 +1226,15 @@ https://example.com/agatha_s1e3.m3u8"></textarea>
                 } else {
                     emptyState.style.display = 'none';
                     
-                    this.links.forEach((link, index) => {
+                    // 按添加顺序显示（order字段排序）
+                    const sortedLinks = [...this.links].sort((a, b) => {
+                        return (a.order || 0) - (b.order || 0);
+                    });
+                    
+                    sortedLinks.forEach((link, index) => {
+                        const originalIndex = this.links.findIndex(l => l.id === link.id);
                         const li = document.createElement('li');
-                        li.className = `link-item ${index === this.currentIndex ? 'active' : ''}`;
+                        li.className = `link-item ${originalIndex === this.currentIndex ? 'active' : ''}`;
                         li.innerHTML = `
                             <div class="link-info">
                                 <div class="link-title">
@@ -1248,7 +1256,7 @@ https://example.com/agatha_s1e3.m3u8"></textarea>
                         // 添加播放事件
                         li.querySelector('.play').addEventListener('click', (e) => {
                             e.stopPropagation();
-                            this.setCurrentLink(index);
+                            this.setCurrentLink(originalIndex);
                         });
                         
                         // 添加删除事件
@@ -1259,7 +1267,7 @@ https://example.com/agatha_s1e3.m3u8"></textarea>
                         
                         // 点击整个项也可以播放
                         li.addEventListener('click', () => {
-                            this.setCurrentLink(index);
+                            this.setCurrentLink(originalIndex);
                         });
                         
                         linksList.appendChild(li);
@@ -1617,31 +1625,45 @@ https://example.com/agatha_s1e3.m3u8"></textarea>
             updateStatus('准备播放', false);
             
             // 设置自动识别示例
-            baseTitleAutoInput.value = '阿加莎克里斯蒂之七面钟';
+            baseTitleAutoInput.value = '';
             seasonAutoInput.value = '1';
             startEpisodeInput.value = '1';
             
             // 设置自动识别URL示例
             batchUrlsInput.value = 
-`https://example.com/agatha_christie_season1_episode01.m3u8
-https://example.com/agatha_christie_s01e02.m3u8
-https://example.com/agatha_christie_S1E03.m3u8
-https://example.com/agatha_christie_1x04.m3u8
-https://example.com/agatha_christie_season1_episode05.m3u8`;
+``;
             
             // 设置手动识别示例
-            baseTitleManualInput.value = '阿加莎克里斯蒂之七面钟';
+            baseTitleManualInput.value = '';
             seasonManualInput.value = '1';
             startEpisodeManualInput.value = '1';
             episodeStepInput.value = '1';
             
             // 设置手动识别URL示例
             manualUrlsInput.value = 
-`https://example.com/agatha_ep1.m3u8
-https://example.com/agatha_ep2.m3u8
-https://example.com/agatha_ep3.m3u8
-https://example.com/agatha_ep4.m3u8
-https://example.com/agatha_ep5.m3u8`;
+``;
+            
+            // 调整播放列表和管理面板高度
+            setTimeout(() => {
+                const managementSection = document.querySelector('.management-section');
+                const linksSection = document.querySelector('.links-section');
+                
+                if (managementSection && linksSection) {
+                    const managementHeight = managementSection.offsetHeight;
+                    linksSection.style.height = `${managementHeight}px`;
+                }
+            }, 100);
+        });
+        
+        // 窗口大小变化时调整高度
+        window.addEventListener('resize', function() {
+            const managementSection = document.querySelector('.management-section');
+            const linksSection = document.querySelector('.links-section');
+            
+            if (managementSection && linksSection) {
+                const managementHeight = managementSection.offsetHeight;
+                linksSection.style.height = `${managementHeight}px`;
+            }
         });
     </script>
 </body>
