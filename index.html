@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>流媒体播放器 - 支持HLS、M3U8、MP4</title>
+    <title>流媒体播放器 - 智能批量链接管理</title>
     <link href="https://vjs.zencdn.net/7.20.3/video-js.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -138,6 +138,10 @@
             background: linear-gradient(90deg, #f72585, #b5179e);
         }
         
+        button.warning {
+            background: linear-gradient(90deg, #f8961e, #f3722c);
+        }
+        
         .status-info {
             display: flex;
             align-items: center;
@@ -170,7 +174,7 @@
             font-weight: 600;
         }
         
-        /* 批量链接管理模块样式 */
+        /* 链接管理模块样式 */
         .links-section {
             flex: 1;
             background: rgba(0, 0, 0, 0.3);
@@ -179,6 +183,7 @@
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
             display: flex;
             flex-direction: column;
+            max-height: 90vh;
         }
         
         .section-title {
@@ -194,8 +199,35 @@
             font-size: 1.2rem;
         }
         
-        .url-input-container {
+        .tabs {
+            display: flex;
             margin-bottom: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .tab {
+            padding: 12px 20px;
+            background: transparent;
+            border: none;
+            color: #b0b0d0;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            border-bottom: 3px solid transparent;
+            font-size: 0.95rem;
+        }
+        
+        .tab.active {
+            color: #4cc9f0;
+            border-bottom-color: #4cc9f0;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
         }
         
         .input-group {
@@ -211,7 +243,7 @@
             font-size: 0.95rem;
         }
         
-        input[type="url"], input[type="text"] {
+        input[type="url"], input[type="text"], textarea {
             padding: 12px 15px;
             border-radius: 8px;
             border: 1px solid rgba(255, 255, 255, 0.1);
@@ -220,21 +252,101 @@
             font-size: 0.95rem;
             transition: all 0.3s;
             width: 100%;
+            resize: vertical;
+            min-height: 100px;
         }
         
-        input[type="url"]:focus, input[type="text"]:focus {
+        input:focus, textarea:focus {
             outline: none;
             border-color: #4cc9f0;
             box-shadow: 0 0 0 2px rgba(76, 201, 240, 0.2);
         }
         
-        .input-with-button {
-            display: flex;
-            gap: 10px;
+        .preview-container {
+            margin-top: 15px;
+            max-height: 300px;
+            overflow-y: auto;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            padding: 15px;
         }
         
-        .input-with-button input {
+        .preview-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .preview-title {
+            color: #4cc9f0;
+            font-weight: 600;
+            font-size: 1rem;
+        }
+        
+        .preview-count {
+            color: #888;
+            font-size: 0.85rem;
+        }
+        
+        .preview-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .preview-item {
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 6px;
+            border-left: 3px solid #4361ee;
+            transition: all 0.2s;
+        }
+        
+        .preview-item:hover {
+            background: rgba(255, 255, 255, 0.08);
+        }
+        
+        .preview-item-title {
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #fff;
+            font-size: 0.9rem;
+        }
+        
+        .preview-item-url {
+            font-size: 0.8rem;
+            color: #a0a0c0;
+            word-break: break-all;
+        }
+        
+        .batch-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .batch-input {
             flex: 1;
+            min-width: 200px;
+        }
+        
+        .batch-hint {
+            font-size: 0.85rem;
+            color: #888;
+            margin-top: 5px;
+            line-height: 1.4;
+        }
+        
+        .batch-hint code {
+            background: rgba(76, 201, 240, 0.2);
+            color: #4cc9f0;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: monospace;
         }
         
         .links-list-container {
@@ -292,6 +404,16 @@
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+        }
+        
+        .episode-info {
+            display: inline-block;
+            padding: 2px 8px;
+            background: rgba(76, 201, 240, 0.2);
+            color: #4cc9f0;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            margin-right: 8px;
         }
         
         .link-actions {
@@ -380,8 +502,12 @@
                 flex: 1;
             }
             
-            .input-with-button {
+            .batch-controls {
                 flex-direction: column;
+            }
+            
+            .batch-input {
+                min-width: unset;
             }
         }
     </style>
@@ -389,8 +515,8 @@
 <body>
     <div class="container">
         <header>
-            <h1><i class="fas fa-video"></i> 流媒体播放器</h1>
-            <p class="subtitle">支持HLS、M3U8、MP4格式 | 批量链接管理</p>
+            <h1><i class="fas fa-video"></i> 智能流媒体播放器</h1>
+            <p class="subtitle">支持HLS、M3U8、MP4格式 | 智能批量链接管理与自动标题识别</p>
         </header>
         
         <div class="main-layout">
@@ -441,21 +567,88 @@
             <section class="links-section">
                 <h2 class="section-title"><i class="fas fa-list"></i> 链接管理</h2>
                 
-                <div class="url-input-container">
+                <div class="tabs">
+                    <button class="tab active" data-tab="single-tab">单个添加</button>
+                    <button class="tab" data-tab="batch-tab">批量添加</button>
+                </div>
+                
+                <!-- 单个添加标签页 -->
+                <div id="single-tab" class="tab-content active">
                     <div class="input-group">
-                        <label for="link-title"><i class="fas fa-heading"></i> 链接标题</label>
-                        <input type="text" id="link-title" placeholder="输入链接标题 (可选)">
+                        <label for="single-url"><i class="fas fa-link"></i> 流媒体URL</label>
+                        <input type="url" id="single-url" placeholder="输入HLS (.m3u8) 或 MP4 流媒体地址...">
+                    </div>
+                    
+                    <div class="batch-controls">
+                        <div class="input-group batch-input">
+                            <label for="base-title-single"><i class="fas fa-heading"></i> 基础标题</label>
+                            <input type="text" id="base-title-single" placeholder="例如：阿加莎克里斯蒂之七面钟">
+                        </div>
+                        
+                        <div class="input-group batch-input">
+                            <label for="season-single"><i class="fas fa-layer-group"></i> 季数</label>
+                            <input type="number" id="season-single" placeholder="1" min="1" value="1">
+                        </div>
+                        
+                        <div class="input-group batch-input">
+                            <label for="episode-single"><i class="fas fa-film"></i> 集数</label>
+                            <input type="number" id="episode-single" placeholder="1" min="1" value="1">
+                        </div>
+                    </div>
+                    
+                    <button id="add-single-btn" class="success" style="width: 100%; margin-top: 10px;">
+                        <i class="fas fa-plus"></i> 添加单个链接
+                    </button>
+                </div>
+                
+                <!-- 批量添加标签页 -->
+                <div id="batch-tab" class="tab-content">
+                    <div class="input-group">
+                        <label for="base-title-batch"><i class="fas fa-heading"></i> 基础标题</label>
+                        <input type="text" id="base-title-batch" placeholder="例如：阿加莎克里斯蒂之七面钟">
+                        <div class="batch-hint">这是所有剧集的通用标题部分</div>
                     </div>
                     
                     <div class="input-group">
-                        <label for="link-url"><i class="fas fa-link"></i> 流媒体URL</label>
-                        <div class="input-with-button">
-                            <input type="url" id="link-url" placeholder="输入HLS (.m3u8) 或 MP4 流媒体地址...">
-                            <button id="add-link-btn" class="success">
-                                <i class="fas fa-plus"></i> 添加
-                            </button>
+                        <label for="batch-urls"><i class="fas fa-list-ol"></i> 批量URL列表（每行一个）</label>
+                        <textarea id="batch-urls" placeholder="每行输入一个URL，例如：
+https://example.com/agatha_s1e1.m3u8
+https://example.com/agatha_s1e2.m3u8
+https://example.com/agatha_s1e3.m3u8"></textarea>
+                        <div class="batch-hint">每行一个URL，系统会自动识别季和集信息。支持格式：S01E01、s1e1、第1季第1集等</div>
+                    </div>
+                    
+                    <div class="batch-controls">
+                        <div class="input-group batch-input">
+                            <label for="season-batch"><i class="fas fa-layer-group"></i> 默认季数</label>
+                            <input type="number" id="season-batch" placeholder="1" min="1" value="1">
+                            <div class="batch-hint">当URL中未识别到季数时使用此值</div>
+                        </div>
+                        
+                        <div class="input-group batch-input">
+                            <label for="start-episode"><i class="fas fa-play-circle"></i> 起始集数</label>
+                            <input type="number" id="start-episode" placeholder="1" min="1" value="1">
+                            <div class="batch-hint">当URL中未识别到集数时，从此值开始自动分配</div>
                         </div>
                     </div>
+                    
+                    <button id="generate-batch-btn" class="warning" style="width: 100%; margin-top: 10px;">
+                        <i class="fas fa-bolt"></i> 智能识别并预览
+                    </button>
+                    
+                    <div id="batch-preview" class="preview-container" style="display: none;">
+                        <div class="preview-header">
+                            <div class="preview-title">识别结果预览</div>
+                            <div class="preview-count" id="preview-count">共 0 个链接</div>
+                        </div>
+                        <div class="preview-list" id="preview-list">
+                            <!-- 预览项将通过JavaScript动态添加 -->
+                        </div>
+                    </div>
+                    
+                    <button id="add-batch-btn" class="success" style="width: 100%; margin-top: 10px; display: none;">
+                        <i class="fas fa-plus-circle"></i> 确认添加批量链接
+                    </button>
                 </div>
                 
                 <div class="links-list-container">
@@ -466,21 +659,26 @@
                     <div id="empty-state" class="empty-state">
                         <i class="fas fa-film"></i>
                         <p>还没有添加任何链接</p>
-                        <p style="margin-top: 5px; font-size: 0.85rem;">点击上方"添加"按钮添加您的第一个流媒体链接</p>
+                        <p style="margin-top: 5px; font-size: 0.85rem;">使用上方功能添加流媒体链接</p>
                     </div>
                 </div>
                 
                 <div class="links-stats">
                     <span id="links-count">共 0 个链接</span>
-                    <button id="clear-all-btn" class="danger" style="padding: 6px 12px;">
-                        <i class="fas fa-trash"></i> 清空全部
-                    </button>
+                    <div>
+                        <button id="export-btn" class="secondary" style="padding: 6px 12px; margin-right: 8px;">
+                            <i class="fas fa-download"></i> 导出
+                        </button>
+                        <button id="clear-all-btn" class="danger" style="padding: 6px 12px;">
+                            <i class="fas fa-trash"></i> 清空
+                        </button>
+                    </div>
                 </div>
             </section>
         </div>
         
         <footer>
-            <p>流媒体播放器 &copy; 2023 | 支持HLS、M3U8、MP4格式 | 链接自动保存到本地存储</p>
+            <p>智能流媒体播放器 &copy; 2023 | 支持智能标题识别与批量链接管理</p>
         </footer>
     </div>
 
@@ -502,14 +700,29 @@
         });
         
         // 获取DOM元素
-        const streamUrlInput = document.getElementById('link-url');
-        const linkTitleInput = document.getElementById('link-title');
+        const singleUrlInput = document.getElementById('single-url');
+        const baseTitleSingleInput = document.getElementById('base-title-single');
+        const seasonSingleInput = document.getElementById('season-single');
+        const episodeSingleInput = document.getElementById('episode-single');
+        
+        const baseTitleBatchInput = document.getElementById('base-title-batch');
+        const batchUrlsInput = document.getElementById('batch-urls');
+        const seasonBatchInput = document.getElementById('season-batch');
+        const startEpisodeInput = document.getElementById('start-episode');
+        
+        const previewContainer = document.getElementById('batch-preview');
+        const previewList = document.getElementById('preview-list');
+        const previewCount = document.getElementById('preview-count');
+        
         const playBtn = document.getElementById('play-btn');
         const pauseBtn = document.getElementById('pause-btn');
         const fullscreenBtn = document.getElementById('fullscreen-btn');
         const prevBtn = document.getElementById('prev-btn');
         const nextBtn = document.getElementById('next-btn');
-        const addLinkBtn = document.getElementById('add-link-btn');
+        const addSingleBtn = document.getElementById('add-single-btn');
+        const generateBatchBtn = document.getElementById('generate-batch-btn');
+        const addBatchBtn = document.getElementById('add-batch-btn');
+        const exportBtn = document.getElementById('export-btn');
         const clearAllBtn = document.getElementById('clear-all-btn');
         const statusDot = document.getElementById('status-dot');
         const statusText = document.getElementById('status-text');
@@ -517,6 +730,12 @@
         const linksList = document.getElementById('links-list');
         const emptyState = document.getElementById('empty-state');
         const linksCount = document.getElementById('links-count');
+        
+        const tabs = document.querySelectorAll('.tab');
+        const tabContents = document.querySelectorAll('.tab-content');
+        
+        // 当前批量链接预览数据
+        let batchPreviewData = [];
         
         // 流媒体链接管理类
         class StreamLinksManager {
@@ -545,22 +764,147 @@
                 localStorage.setItem('streamLinks', JSON.stringify(this.links));
             }
             
-            // 添加新链接
-            addLink(title, url) {
+            // 智能提取标题和季集信息
+            extractTitleInfo(url, baseTitle = '', defaultSeason = 1, defaultEpisode = 1) {
+                let season = defaultSeason;
+                let episode = defaultEpisode;
+                let extractedBaseTitle = baseTitle;
+                
+                // 从URL中提取季和集信息
+                const seasonEpisodeMatch = this.extractSeasonEpisodeFromUrl(url);
+                if (seasonEpisodeMatch) {
+                    season = seasonEpisodeMatch.season || season;
+                    episode = seasonEpisodeMatch.episode || episode;
+                }
+                
+                // 如果未提供基础标题，尝试从URL中提取
+                if (!extractedBaseTitle) {
+                    extractedBaseTitle = this.extractBaseTitleFromUrl(url);
+                }
+                
+                return {
+                    baseTitle: extractedBaseTitle || '未命名',
+                    season: season,
+                    episode: episode
+                };
+            }
+            
+            // 从URL中提取季和集信息
+            extractSeasonEpisodeFromUrl(url) {
+                // 多种季集格式匹配
+                const patterns = [
+                    // S01E01 或 S1E1 格式
+                    /[Ss](?:eason)?\s*(\d+)\s*[Ee](?:pisode)?\s*(\d+)/,
+                    // 第1季第1集 格式
+                    /第\s*(\d+)\s*季[^\d]*第\s*(\d+)\s*集/,
+                    // s01e01 格式（小写）
+                    /s(\d+)e(\d+)/,
+                    // season01episode01 格式
+                    /season\s*(\d+)\s*episode\s*(\d+)/,
+                    // 01x01 格式
+                    /(\d+)\s*x\s*(\d+)/,
+                    // 包含数字对的分隔符格式
+                    /[\/_-](\d+)\s*[\._\-]\s*(\d+)[\/_-]/
+                ];
+                
+                for (const pattern of patterns) {
+                    const match = url.match(pattern);
+                    if (match && match[1] && match[2]) {
+                        return {
+                            season: parseInt(match[1]),
+                            episode: parseInt(match[2])
+                        };
+                    }
+                }
+                
+                // 尝试查找单独的季和集
+                const seasonMatch = url.match(/[Ss](?:eason)?\s*(\d+)/);
+                const episodeMatch = url.match(/[Ee](?:pisode)?\s*(\d+)/);
+                
+                const result = {};
+                if (seasonMatch && seasonMatch[1]) {
+                    result.season = parseInt(seasonMatch[1]);
+                }
+                if (episodeMatch && episodeMatch[1]) {
+                    result.episode = parseInt(episodeMatch[1]);
+                }
+                
+                return Object.keys(result).length > 0 ? result : null;
+            }
+            
+            // 从URL中提取基础标题
+            extractBaseTitleFromUrl(url) {
+                try {
+                    const urlObj = new URL(url);
+                    const path = urlObj.pathname;
+                    
+                    // 从路径中提取可能的标题
+                    const pathParts = path.split('/')
+                        .filter(part => part && !part.includes('.') && !/\d/.test(part))
+                        .map(part => part.replace(/[-_]/g, ' '));
+                    
+                    if (pathParts.length > 0) {
+                        // 取最后一个非空部分作为标题
+                        const lastPart = pathParts[pathParts.length - 1];
+                        return lastPart.replace(/\b\w/g, l => l.toUpperCase());
+                    }
+                    
+                    // 如果路径中没有合适的部分，使用域名
+                    const domainParts = urlObj.hostname.split('.');
+                    if (domainParts.length > 1 && domainParts[0] !== 'www') {
+                        return domainParts[0].replace(/[-_]/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                    }
+                    
+                    return '未命名';
+                } catch (e) {
+                    // 如果URL解析失败，使用简化标题
+                    const lastSegment = url.split('/').pop();
+                    const cleanSegment = lastSegment.replace(/[^\w\s\u4e00-\u9fa5]/g, ' ');
+                    return cleanSegment || '未命名';
+                }
+            }
+            
+            // 格式化标题（使用E表示集）
+            formatTitle(baseTitle, season, episode) {
+                // 确保季和集是数字
+                season = parseInt(season) || 1;
+                episode = parseInt(episode) || 1;
+                
+                // 格式: 剧名 S季数E集数
+                return `${baseTitle} S${season}E${episode}`;
+            }
+            
+            // 添加单个链接
+            addSingleLink(url, baseTitle = '', season = null, episode = null) {
                 if (!url.trim()) {
                     alert('请输入有效的URL地址');
                     return false;
                 }
                 
                 // 检查是否已存在相同URL
-                if (this.links.some(link => link.url === url)) {
+                if (this.links.some(link => link.url === url.trim())) {
                     alert('该URL已存在于列表中');
                     return false;
                 }
                 
+                // 提取标题信息
+                const titleInfo = this.extractTitleInfo(url, baseTitle, 
+                    season !== null ? parseInt(season) : 1, 
+                    episode !== null ? parseInt(episode) : 1);
+                
+                // 如果用户提供了季和集，则使用用户提供的值
+                if (season !== null) titleInfo.season = parseInt(season) || titleInfo.season;
+                if (episode !== null) titleInfo.episode = parseInt(episode) || titleInfo.episode;
+                
+                // 格式化最终标题
+                const finalTitle = this.formatTitle(titleInfo.baseTitle, titleInfo.season, titleInfo.episode);
+                
                 const link = {
-                    id: Date.now(),
-                    title: title.trim() || this.generateDefaultTitle(url),
+                    id: Date.now() + Math.random(),
+                    title: finalTitle,
+                    baseTitle: titleInfo.baseTitle,
+                    season: titleInfo.season,
+                    episode: titleInfo.episode,
                     url: url.trim(),
                     addedAt: new Date().toLocaleString()
                 };
@@ -577,26 +921,107 @@
                 return true;
             }
             
-            // 生成默认标题
-            generateDefaultTitle(url) {
-                // 尝试从URL中提取有意义的名称
-                try {
-                    const urlObj = new URL(url);
-                    let title = urlObj.hostname;
-                    
-                    // 如果是常见流媒体格式，添加格式信息
-                    if (url.includes('.m3u8')) {
-                        title += ' (HLS)';
-                    } else if (url.includes('.mp4')) {
-                        title += ' (MP4)';
+            // 批量添加链接
+            addBatchLinks(links) {
+                if (!links || links.length === 0) {
+                    alert('没有可添加的链接');
+                    return false;
+                }
+                
+                let addedCount = 0;
+                let skippedCount = 0;
+                
+                links.forEach(link => {
+                    // 检查是否已存在相同URL
+                    if (this.links.some(existingLink => existingLink.url === link.url)) {
+                        skippedCount++;
+                        return;
                     }
                     
-                    return title;
-                } catch (e) {
-                    // 如果不是有效的URL，返回简化的文件名
-                    const lastSegment = url.split('/').pop();
-                    return lastSegment.length > 30 ? lastSegment.substring(0, 30) + '...' : lastSegment;
+                    this.links.push(link);
+                    addedCount++;
+                });
+                
+                if (addedCount > 0) {
+                    this.saveToLocalStorage();
+                    this.updateUI();
+                    
+                    // 按季和集排序
+                    this.sortLinks();
+                    
+                    if (skippedCount > 0) {
+                        alert(`成功添加 ${addedCount} 个链接，跳过 ${skippedCount} 个重复链接`);
+                    } else {
+                        alert(`成功添加 ${addedCount} 个链接`);
+                    }
+                    
+                    return true;
+                } else {
+                    alert('没有添加任何新链接（可能全部已存在）');
+                    return false;
                 }
+            }
+            
+            // 智能识别批量URL
+            intelligentBatchParse(urlsText, baseTitle, defaultSeason, startEpisode) {
+                const urls = urlsText.trim().split('\n')
+                    .map(url => url.trim())
+                    .filter(url => url.length > 0);
+                
+                if (urls.length === 0) {
+                    return [];
+                }
+                
+                const results = [];
+                let episodeCounter = parseInt(startEpisode) || 1;
+                
+                urls.forEach((url, index) => {
+                    // 为每个URL提取信息
+                    const titleInfo = this.extractTitleInfo(
+                        url, 
+                        baseTitle, 
+                        defaultSeason, 
+                        episodeCounter
+                    );
+                    
+                    // 如果URL中识别到了集数，更新计数器
+                    const extractedInfo = this.extractSeasonEpisodeFromUrl(url);
+                    if (extractedInfo && extractedInfo.episode) {
+                        episodeCounter = extractedInfo.episode + 1;
+                    } else {
+                        episodeCounter++;
+                    }
+                    
+                    // 格式化标题
+                    const finalTitle = this.formatTitle(titleInfo.baseTitle, titleInfo.season, titleInfo.episode);
+                    
+                    results.push({
+                        id: Date.now() + Math.random() + index,
+                        title: finalTitle,
+                        baseTitle: titleInfo.baseTitle,
+                        season: titleInfo.season,
+                        episode: titleInfo.episode,
+                        url: url,
+                        addedAt: new Date().toLocaleString()
+                    });
+                });
+                
+                return results;
+            }
+            
+            // 按季和集排序链接
+            sortLinks() {
+                this.links.sort((a, b) => {
+                    // 首先按季排序
+                    if (a.season !== b.season) {
+                        return a.season - b.season;
+                    }
+                    // 然后按集排序
+                    return a.episode - b.episode;
+                });
+                
+                this.saveToLocalStorage();
+                this.updateUI();
             }
             
             // 删除链接
@@ -641,8 +1066,6 @@
                 if (index >= 0 && index < this.links.length) {
                     this.currentIndex = index;
                     const link = this.links[index];
-                    streamUrlInput.value = link.url;
-                    linkTitleInput.value = link.title;
                     
                     // 播放该链接
                     playStream(link.url);
@@ -676,6 +1099,24 @@
                 this.setCurrentLink(newIndex);
             }
             
+            // 导出链接
+            exportLinks() {
+                if (this.links.length === 0) {
+                    alert('没有可导出的链接');
+                    return;
+                }
+                
+                const dataStr = JSON.stringify(this.links, null, 2);
+                const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+                
+                const exportFileDefaultName = 'stream-links-' + new Date().toISOString().slice(0, 10) + '.json';
+                
+                const linkElement = document.createElement('a');
+                linkElement.setAttribute('href', dataUri);
+                linkElement.setAttribute('download', exportFileDefaultName);
+                linkElement.click();
+            }
+            
             // 更新UI
             updateUI() {
                 // 更新链接列表
@@ -691,7 +1132,10 @@
                         li.className = `link-item ${index === this.currentIndex ? 'active' : ''}`;
                         li.innerHTML = `
                             <div class="link-info">
-                                <div class="link-title">${link.title}</div>
+                                <div class="link-title">
+                                    <span class="episode-info">S${link.season}E${link.episode}</span>
+                                    ${link.title}
+                                </div>
                                 <div class="link-url">${link.url}</div>
                                 <div style="font-size: 0.8rem; color: #888; margin-top: 3px;">${link.addedAt}</div>
                             </div>
@@ -728,57 +1172,6 @@
                 
                 // 更新链接计数
                 linksCount.textContent = `共 ${this.links.length} 个链接`;
-            }
-            
-            // 导出链接
-            exportLinks() {
-                const dataStr = JSON.stringify(this.links, null, 2);
-                const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
-                
-                const exportFileDefaultName = 'stream-links.json';
-                
-                const linkElement = document.createElement('a');
-                linkElement.setAttribute('href', dataUri);
-                linkElement.setAttribute('download', exportFileDefaultName);
-                linkElement.click();
-            }
-            
-            // 导入链接
-            importLinks(file) {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    try {
-                        const importedLinks = JSON.parse(e.target.result);
-                        if (Array.isArray(importedLinks)) {
-                            // 验证导入的数据格式
-                            const validLinks = importedLinks.filter(link => 
-                                link && link.url && typeof link.url === 'string'
-                            );
-                            
-                            if (validLinks.length > 0) {
-                                // 合并现有链接和导入链接，避免重复
-                                const existingUrls = new Set(this.links.map(link => link.url));
-                                const newLinks = validLinks.filter(link => !existingUrls.has(link.url));
-                                
-                                if (newLinks.length > 0) {
-                                    this.links = [...this.links, ...newLinks];
-                                    this.saveToLocalStorage();
-                                    this.updateUI();
-                                    alert(`成功导入 ${newLinks.length} 个链接`);
-                                } else {
-                                    alert('没有发现新的链接，所有链接都已存在');
-                                }
-                            } else {
-                                alert('导入的文件中没有有效的链接数据');
-                            }
-                        } else {
-                            alert('导入的文件格式不正确');
-                        }
-                    } catch (error) {
-                        alert('导入失败：文件格式不正确');
-                    }
-                };
-                reader.readAsText(file);
             }
         }
         
@@ -851,13 +1244,129 @@
             });
         }
         
+        // 智能识别并生成批量预览
+        function generateBatchPreview() {
+            const baseTitle = baseTitleBatchInput.value.trim();
+            const urlsText = batchUrlsInput.value.trim();
+            const defaultSeason = parseInt(seasonBatchInput.value) || 1;
+            const startEpisode = parseInt(startEpisodeInput.value) || 1;
+            
+            if (!urlsText) {
+                alert('请输入批量URL列表');
+                return;
+            }
+            
+            // 智能识别
+            batchPreviewData = linksManager.intelligentBatchParse(
+                urlsText, 
+                baseTitle, 
+                defaultSeason, 
+                startEpisode
+            );
+            
+            if (batchPreviewData.length === 0) {
+                alert('未能识别到有效的URL');
+                return;
+            }
+            
+            // 清空预览
+            previewList.innerHTML = '';
+            
+            // 生成预览
+            batchPreviewData.forEach((item, index) => {
+                const previewItem = document.createElement('div');
+                previewItem.className = 'preview-item';
+                previewItem.innerHTML = `
+                    <div class="preview-item-title">
+                        <span style="color: #4cc9f0; font-size: 0.85rem; background: rgba(76, 201, 240, 0.1); padding: 2px 6px; border-radius: 4px; margin-right: 8px;">
+                            S${item.season}E${item.episode}
+                        </span>
+                        ${item.title}
+                    </div>
+                    <div class="preview-item-url">${item.url}</div>
+                `;
+                previewList.appendChild(previewItem);
+            });
+            
+            // 更新计数
+            previewCount.textContent = `共 ${batchPreviewData.length} 个链接`;
+            
+            // 显示预览
+            previewContainer.style.display = 'block';
+            addBatchBtn.style.display = 'block';
+            
+            // 滚动到预览区域
+            previewContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+        
         // 事件监听器
+        // 标签页切换
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const tabId = tab.getAttribute('data-tab');
+                
+                // 更新活动标签
+                tabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                
+                // 显示对应内容
+                tabContents.forEach(content => {
+                    content.classList.remove('active');
+                    if (content.id === tabId) {
+                        content.classList.add('active');
+                    }
+                });
+            });
+        });
+        
+        // 单个添加
+        addSingleBtn.addEventListener('click', function() {
+            const url = singleUrlInput.value.trim();
+            const baseTitle = baseTitleSingleInput.value.trim();
+            const season = seasonSingleInput.value;
+            const episode = episodeSingleInput.value;
+            
+            if (linksManager.addSingleLink(url, baseTitle, season, episode)) {
+                // 清空输入框
+                singleUrlInput.value = '';
+                baseTitleSingleInput.value = '';
+                seasonSingleInput.value = '1';
+                episodeSingleInput.value = '1';
+            }
+        });
+        
+        // 生成批量预览
+        generateBatchBtn.addEventListener('click', generateBatchPreview);
+        
+        // 添加批量链接
+        addBatchBtn.addEventListener('click', function() {
+            if (batchPreviewData.length === 0) {
+                alert('请先生成预览');
+                return;
+            }
+            
+            if (linksManager.addBatchLinks(batchPreviewData)) {
+                // 清空输入框和预览
+                baseTitleBatchInput.value = '';
+                batchUrlsInput.value = '';
+                seasonBatchInput.value = '1';
+                startEpisodeInput.value = '1';
+                previewContainer.style.display = 'none';
+                addBatchBtn.style.display = 'none';
+                batchPreviewData = [];
+                
+                // 自动切换到列表视图
+                document.querySelector('[data-tab="single-tab"]').click();
+            }
+        });
+        
+        // 播放控制
         playBtn.addEventListener('click', function() {
-            const url = streamUrlInput.value.trim();
-            if (url) {
+            if (linksManager.currentIndex >= 0) {
+                const url = linksManager.links[linksManager.currentIndex].url;
                 playStream(url);
             } else {
-                alert('请输入要播放的URL地址');
+                alert('请先选择一个要播放的链接');
             }
         });
         
@@ -887,15 +1396,8 @@
             linksManager.playNext();
         });
         
-        addLinkBtn.addEventListener('click', function() {
-            const title = linkTitleInput.value.trim();
-            const url = streamUrlInput.value.trim();
-            
-            if (linksManager.addLink(title, url)) {
-                // 清空输入框
-                linkTitleInput.value = '';
-                streamUrlInput.value = '';
-            }
+        exportBtn.addEventListener('click', function() {
+            linksManager.exportLinks();
         });
         
         clearAllBtn.addEventListener('click', function() {
@@ -903,9 +1405,9 @@
         });
         
         // 输入框回车键支持
-        streamUrlInput.addEventListener('keypress', function(e) {
+        singleUrlInput.addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
-                addLinkBtn.click();
+                addSingleBtn.click();
             }
         });
         
@@ -946,18 +1448,32 @@
             }
         });
         
-        // 页面加载时设置一个默认URL示例
+        // 页面加载时设置示例
         window.addEventListener('DOMContentLoaded', function() {
-            const defaultUrl = "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8";
-            streamUrlInput.value = defaultUrl;
-            streamUrlInput.placeholder = "例如: " + defaultUrl;
             updateStatus('准备播放', false);
             
-            // 添加一些示例链接（如果列表为空）
+            // 设置批量添加示例
+            baseTitleBatchInput.value = '阿加莎克里斯蒂之七面钟';
+            seasonBatchInput.value = '1';
+            startEpisodeInput.value = '1';
+            
+            // 设置批量URL示例
+            batchUrlsInput.value = 
+`https://example.com/agatha_christie_season1_episode01.m3u8
+https://example.com/agatha_christie_s01e02.m3u8
+https://example.com/agatha_christie_S1E03.m3u8
+https://example.com/agatha_christie_1x04.m3u8
+https://example.com/agatha_christie_season1_episode05.m3u8`;
+            
+            // 设置单个添加示例
+            baseTitleSingleInput.value = '阿加莎克里斯蒂之七面钟';
+            seasonSingleInput.value = '1';
+            episodeSingleInput.value = '1';
+            
+            // 如果列表为空，添加一些示例链接
             if (linksManager.links.length === 0) {
                 // 可以在这里添加一些初始示例链接
-                // linksManager.addLink("HLS示例流", "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8");
-                // linksManager.addLink("MP4示例视频", "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4");
+                // linksManager.addSingleLink('https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8', '测试HLS流', 1, 1);
             }
         });
     </script>
