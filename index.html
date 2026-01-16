@@ -188,8 +188,8 @@
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
             display: flex;
             flex-direction: column;
-            height: calc(100% - 50px); /* 调整高度，与左侧管理面板匹配 */
-            min-height: 600px; /* 设置最小高度 */
+            height: calc(100% - 50px);
+            min-height: 600px;
         }
         
         .section-title {
@@ -213,8 +213,8 @@
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
             display: flex;
             flex-direction: column;
-            height: calc(100% - 50px); /* 调整高度，与右侧播放列表匹配 */
-            min-height: 600px; /* 设置最小高度 */
+            height: calc(100% - 50px);
+            min-height: 600px;
         }
         
         .tabs {
@@ -544,12 +544,176 @@
             display: flex;
             gap: 10px;
         }
+        
+        /* 导入文件按钮样式 */
+        .import-file-input {
+            display: none;
+        }
+        
+        .import-label {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 6px;
+            background: linear-gradient(90deg, #4cc9f0, #4895ef);
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .import-label:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(76, 201, 240, 0.4);
+        }
+        
+        /* 文件上传区域 */
+        .file-upload-area {
+            border: 2px dashed rgba(76, 201, 240, 0.3);
+            border-radius: 10px;
+            padding: 30px 20px;
+            text-align: center;
+            background: rgba(0, 0, 0, 0.2);
+            margin-bottom: 15px;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        
+        .file-upload-area:hover {
+            border-color: rgba(76, 201, 240, 0.6);
+            background: rgba(0, 0, 0, 0.3);
+        }
+        
+        .file-upload-area.drag-over {
+            border-color: #4cc9f0;
+            background: rgba(76, 201, 240, 0.1);
+        }
+        
+        .file-upload-icon {
+            font-size: 2.5rem;
+            color: #4cc9f0;
+            margin-bottom: 15px;
+        }
+        
+        .file-upload-text {
+            color: #b0b0d0;
+            font-size: 0.95rem;
+            margin-bottom: 10px;
+        }
+        
+        .file-upload-hint {
+            color: #888;
+            font-size: 0.85rem;
+        }
+        
+        .file-upload-hint code {
+            background: rgba(76, 201, 240, 0.2);
+            color: #4cc9f0;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+        
+        /* 模态框样式 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-content {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            border-radius: 15px;
+            padding: 25px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(76, 201, 240, 0.2);
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .modal-title {
+            font-size: 1.3rem;
+            color: #4cc9f0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .modal-close {
+            background: transparent;
+            border: none;
+            color: #b0b0d0;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: color 0.3s;
+            padding: 5px;
+        }
+        
+        .modal-close:hover {
+            color: #fff;
+        }
+        
+        .modal-body {
+            margin-bottom: 20px;
+        }
+        
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        
+        .modal-message {
+            padding: 15px;
+            border-radius: 8px;
+            background: rgba(0, 0, 0, 0.3);
+            margin-bottom: 15px;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+        
+        .modal-success {
+            background: rgba(76, 175, 80, 0.1);
+            border-left: 4px solid #4caf50;
+            color: #a5d6a7;
+        }
+        
+        .modal-error {
+            background: rgba(244, 67, 54, 0.1);
+            border-left: 4px solid #f44336;
+            color: #ef9a9a;
+        }
+        
+        .modal-info {
+            background: rgba(33, 150, 243, 0.1);
+            border-left: 4px solid #2196f3;
+            color: #90caf9;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
-            <h1><i class="fas fa-video"></i> 智能流媒体播放器</h1>
+            <h1><i class="fas fa-video"></i> 蓝莓智能流媒体播放器</h1>
             <p class="subtitle">支持HLS、M3U8、MP4格式 | 智能批量链接管理与自动标题识别</p>
         </header>
         
@@ -608,6 +772,7 @@
                     <div class="tabs">
                         <button class="tab active" data-tab="auto-tab">自动识别</button>
                         <button class="tab" data-tab="manual-tab">手动识别</button>
+                        <button class="tab" data-tab="import-tab">导入</button>
                     </div>
                     
                     <!-- 自动识别标签页 -->
@@ -728,9 +893,75 @@ https://example.com/agatha_s1e3.m3u8"></textarea>
                         </div>
                     </div>
                     
+                    <!-- 导入标签页 -->
+                    <div id="import-tab" class="tab-content">
+                        <div class="file-upload-area" id="file-upload-area">
+                            <div class="file-upload-icon">
+                                <i class="fas fa-file-import"></i>
+                            </div>
+                            <div class="file-upload-text">
+                                点击选择文件或拖放到此处
+                            </div>
+                            <div class="file-upload-hint">
+                                支持导入JSON格式文件（通过本系统导出的文件）
+                            </div>
+                            <div class="file-upload-hint" style="margin-top: 10px;">
+                                <code>.json</code> 格式
+                            </div>
+                        </div>
+                        
+                        <input type="file" id="import-file-input" class="import-file-input" accept=".json">
+                        
+                        <div class="input-group">
+                            <label><i class="fas fa-info-circle"></i> 导入选项</label>
+                            <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 5px;">
+                                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                    <input type="radio" name="import-mode" id="import-mode-append" value="append" checked>
+                                    <span>追加模式（添加到现有列表末尾）</span>
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                    <input type="radio" name="import-mode" id="import-mode-replace" value="replace">
+                                    <span>替换模式（清空现有列表并导入）</span>
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                    <input type="checkbox" id="import-merge-duplicates" checked>
+                                    <span>自动去重（跳过重复的URL）</span>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="management-actions">
+                            <button id="import-btn" class="success" style="width: 100%;" disabled>
+                                <i class="fas fa-file-import"></i> 导入文件
+                            </button>
+                            
+                            <div id="import-preview" class="preview-container" style="display: none;">
+                                <div class="preview-header">
+                                    <div class="preview-title">导入数据预览</div>
+                                    <div class="preview-count" id="import-preview-count">共 0 个链接</div>
+                                </div>
+                                <div class="preview-list" id="import-preview-list">
+                                    <!-- 预览项将通过JavaScript动态添加 -->
+                                </div>
+                            </div>
+                            
+                            <div class="management-buttons">
+                                <button id="confirm-import-btn" class="success" style="flex: 1; display: none;">
+                                    <i class="fas fa-check"></i> 确认导入
+                                </button>
+                                <button id="cancel-import-btn" class="secondary" style="flex: 1; display: none;">
+                                    <i class="fas fa-times"></i> 取消
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
                     <div class="links-stats">
                         <span>管理面板</span>
                         <div>
+                            <label for="import-file-input" class="import-label" style="margin-right: 8px;">
+                                <i class="fas fa-upload"></i> 导入
+                            </label>
                             <button id="export-btn" class="secondary" style="padding: 6px 12px; margin-right: 8px;">
                                 <i class="fas fa-download"></i> 导出
                             </button>
@@ -768,8 +999,26 @@ https://example.com/agatha_s1e3.m3u8"></textarea>
         </div>
         
         <footer>
-            <p>智能流媒体播放器 &copy; 2023 | 支持智能标题识别与批量链接管理</p>
+            <p>蓝莓智能流媒体播放器 &copy; 2026 | 支持智能识别与批量管理 | 导入/导出功能</p>
         </footer>
+    </div>
+    
+    <!-- 导入结果模态框 -->
+    <div id="import-result-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title"><i class="fas fa-file-import"></i> 导入结果</h3>
+                <button class="modal-close" id="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="import-result-message" class="modal-message">
+                    <!-- 导入结果信息将在这里显示 -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="modal-ok-btn" class="success">确定</button>
+            </div>
+        </div>
     </div>
 
     <script src="https://vjs.zencdn.net/7.20.3/video.min.js"></script>
@@ -809,6 +1058,26 @@ https://example.com/agatha_s1e3.m3u8"></textarea>
         const manualPreviewList = document.getElementById('manual-preview-list');
         const manualPreviewCount = document.getElementById('manual-preview-count');
         
+        // 导入相关元素
+        const importTab = document.getElementById('import-tab');
+        const fileUploadArea = document.getElementById('file-upload-area');
+        const importFileInput = document.getElementById('import-file-input');
+        const importBtn = document.getElementById('import-btn');
+        const importPreviewContainer = document.getElementById('import-preview');
+        const importPreviewList = document.getElementById('import-preview-list');
+        const importPreviewCount = document.getElementById('import-preview-count');
+        const confirmImportBtn = document.getElementById('confirm-import-btn');
+        const cancelImportBtn = document.getElementById('cancel-import-btn');
+        const importModeAppend = document.getElementById('import-mode-append');
+        const importModeReplace = document.getElementById('import-mode-replace');
+        const importMergeDuplicates = document.getElementById('import-merge-duplicates');
+        
+        // 模态框相关元素
+        const importResultModal = document.getElementById('import-result-modal');
+        const importResultMessage = document.getElementById('import-result-message');
+        const modalClose = document.getElementById('modal-close');
+        const modalOkBtn = document.getElementById('modal-ok-btn');
+        
         // 控制按钮
         const playBtn = document.getElementById('play-btn');
         const pauseBtn = document.getElementById('pause-btn');
@@ -837,6 +1106,8 @@ https://example.com/agatha_s1e3.m3u8"></textarea>
         // 当前批量链接预览数据
         let autoPreviewData = [];
         let manualPreviewData = [];
+        let importPreviewData = [];
+        let importFileData = null;
         
         // 流媒体链接管理类
         class StreamLinksManager {
@@ -1000,9 +1271,6 @@ https://example.com/agatha_s1e3.m3u8"></textarea>
                     this.saveToLocalStorage();
                     this.updateUI();
                     
-                    // 移除自动排序功能，保持添加顺序
-                    // this.sortLinks();
-                    
                     if (skippedCount > 0) {
                         alert(`成功添加 ${addedCount} 个链接，跳过 ${skippedCount} 个重复链接`);
                     } else {
@@ -1013,6 +1281,83 @@ https://example.com/agatha_s1e3.m3u8"></textarea>
                 } else {
                     alert('没有添加任何新链接（可能全部已存在）');
                     return false;
+                }
+            }
+            
+            // 导入链接
+            importLinks(links, mode = 'append', mergeDuplicates = true) {
+                if (!links || links.length === 0) {
+                    return {
+                        success: false,
+                        total: 0,
+                        added: 0,
+                        skipped: 0,
+                        message: '没有可导入的链接数据'
+                    };
+                }
+                
+                let addedCount = 0;
+                let skippedCount = 0;
+                let originalCount = this.links.length;
+                
+                // 如果是替换模式，清空现有列表
+                if (mode === 'replace') {
+                    this.links = [];
+                    originalCount = 0;
+                }
+                
+                // 处理每个链接
+                links.forEach(link => {
+                    // 确保链接有必要的字段
+                    if (!link.url) {
+                        skippedCount++;
+                        return;
+                    }
+                    
+                    // 如果启用去重，检查是否已存在相同URL
+                    if (mergeDuplicates && this.links.some(existingLink => existingLink.url === link.url)) {
+                        skippedCount++;
+                        return;
+                    }
+                    
+                    // 确保链接有ID
+                    if (!link.id) {
+                        link.id = Date.now() + Math.random();
+                    }
+                    
+                    // 确保链接有order字段（按添加顺序）
+                    if (typeof link.order === 'undefined') {
+                        link.order = this.links.length;
+                    }
+                    
+                    // 确保链接有addedAt字段
+                    if (!link.addedAt) {
+                        link.addedAt = new Date().toLocaleString();
+                    }
+                    
+                    this.links.push(link);
+                    addedCount++;
+                });
+                
+                if (addedCount > 0) {
+                    this.saveToLocalStorage();
+                    this.updateUI();
+                    
+                    return {
+                        success: true,
+                        total: links.length,
+                        added: addedCount,
+                        skipped: skippedCount,
+                        message: `导入完成！成功导入 ${addedCount} 个链接，跳过 ${skippedCount} 个链接`
+                    };
+                } else {
+                    return {
+                        success: false,
+                        total: links.length,
+                        added: 0,
+                        skipped: skippedCount,
+                        message: '没有导入任何新链接（可能全部已存在）'
+                    };
                 }
             }
             
@@ -1057,7 +1402,6 @@ https://example.com/agatha_s1e3.m3u8"></textarea>
                         episode: titleInfo.episode,
                         url: url,
                         addedAt: new Date().toLocaleString(),
-                        // 添加排序字段：按添加顺序
                         order: this.links.length + index
                     });
                 });
@@ -1097,7 +1441,6 @@ https://example.com/agatha_s1e3.m3u8"></textarea>
                         episode: episodeCounter,
                         url: url,
                         addedAt: new Date().toLocaleString(),
-                        // 添加排序字段：按添加顺序
                         order: this.links.length + index
                     });
                     
@@ -1107,9 +1450,8 @@ https://example.com/agatha_s1e3.m3u8"></textarea>
                 return results;
             }
             
-            // 按添加顺序排序链接（默认按添加顺序，不移除排序功能但按添加时间排序）
+            // 按添加顺序排序链接
             sortLinks() {
-                // 按添加顺序排序（order字段）
                 this.links.sort((a, b) => {
                     return (a.order || 0) - (b.order || 0);
                 });
@@ -1214,6 +1556,39 @@ https://example.com/agatha_s1e3.m3u8"></textarea>
                 linkElement.setAttribute('href', dataUri);
                 linkElement.setAttribute('download', exportFileDefaultName);
                 linkElement.click();
+            }
+            
+            // 验证导入数据格式
+            validateImportData(data) {
+                if (!Array.isArray(data)) {
+                    return {
+                        valid: false,
+                        message: '导入数据格式错误：数据不是数组格式'
+                    };
+                }
+                
+                // 检查每个项是否包含必要字段
+                for (let i = 0; i < data.length; i++) {
+                    const item = data[i];
+                    if (!item.url) {
+                        return {
+                            valid: false,
+                            message: `第 ${i + 1} 项缺少URL字段`
+                        };
+                    }
+                    
+                    if (!item.title && !item.baseTitle) {
+                        return {
+                            valid: false,
+                            message: `第 ${i + 1} 项缺少标题字段`
+                        };
+                    }
+                }
+                
+                return {
+                    valid: true,
+                    message: `数据格式正确，共 ${data.length} 个链接`
+                };
             }
             
             // 更新UI
@@ -1462,6 +1837,177 @@ https://example.com/agatha_s1e3.m3u8"></textarea>
             manualPreviewContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
         
+        // 处理文件选择
+        function handleFileSelect(file) {
+            if (!file) return;
+            
+            // 检查文件类型
+            if (!file.name.toLowerCase().endsWith('.json')) {
+                alert('请选择JSON格式的文件');
+                return;
+            }
+            
+            // 读取文件
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                try {
+                    const fileContent = e.target.result;
+                    importFileData = JSON.parse(fileContent);
+                    
+                    // 验证数据格式
+                    const validation = linksManager.validateImportData(importFileData);
+                    
+                    if (!validation.valid) {
+                        alert(`文件格式错误：${validation.message}`);
+                        importBtn.disabled = true;
+                        return;
+                    }
+                    
+                    // 生成预览
+                    generateImportPreview(importFileData);
+                    
+                    // 启用导入按钮
+                    importBtn.disabled = false;
+                    
+                    // 显示成功消息
+                    importBtn.innerHTML = `<i class="fas fa-check"></i> 文件已加载 (${importFileData.length}个链接)`;
+                    
+                } catch (error) {
+                    alert('读取文件失败，请检查文件格式是否正确');
+                    console.error('文件解析错误:', error);
+                    importBtn.disabled = true;
+                }
+            };
+            
+            reader.onerror = function() {
+                alert('读取文件失败，请重试');
+                importBtn.disabled = true;
+            };
+            
+            reader.readAsText(file);
+        }
+        
+        // 生成导入预览
+        function generateImportPreview(data) {
+            if (!data || data.length === 0) {
+                alert('没有可预览的数据');
+                return;
+            }
+            
+            // 限制预览数量，最多显示10个
+            const previewLimit = 10;
+            const previewData = data.slice(0, previewLimit);
+            
+            // 清空预览
+            importPreviewList.innerHTML = '';
+            
+            // 生成预览
+            previewData.forEach((item, index) => {
+                const previewItem = document.createElement('div');
+                previewItem.className = 'preview-item';
+                
+                // 获取季和集信息
+                const season = item.season || 1;
+                const episode = item.episode || 1;
+                
+                previewItem.innerHTML = `
+                    <div class="preview-item-title">
+                        <span style="color: #4cc9f0; font-size: 0.85rem; background: rgba(76, 201, 240, 0.1); padding: 2px 6px; border-radius: 4px; margin-right: 8px;">
+                            S${season}E${episode}
+                        </span>
+                        ${item.title || item.baseTitle || '未命名'}
+                    </div>
+                    <div class="preview-item-url">${item.url}</div>
+                `;
+                importPreviewList.appendChild(previewItem);
+            });
+            
+            // 如果有更多数据，显示提示
+            if (data.length > previewLimit) {
+                const moreItem = document.createElement('div');
+                moreItem.className = 'preview-item';
+                moreItem.style.textAlign = 'center';
+                moreItem.style.fontStyle = 'italic';
+                moreItem.style.color = '#888';
+                moreItem.textContent = `... 还有 ${data.length - previewLimit} 个链接未显示`;
+                importPreviewList.appendChild(moreItem);
+            }
+            
+            // 更新计数
+            importPreviewCount.textContent = `共 ${data.length} 个链接`;
+            
+            // 显示预览和按钮
+            importPreviewContainer.style.display = 'block';
+            confirmImportBtn.style.display = 'flex';
+            cancelImportBtn.style.display = 'flex';
+        }
+        
+        // 执行导入
+        function executeImport() {
+            if (!importFileData) {
+                alert('请先选择要导入的文件');
+                return;
+            }
+            
+            // 获取导入选项
+            const importMode = importModeReplace.checked ? 'replace' : 'append';
+            const mergeDuplicates = importMergeDuplicates.checked;
+            
+            // 如果是替换模式，提示确认
+            if (importMode === 'replace' && linksManager.links.length > 0) {
+                if (!confirm(`替换模式将清空现有的 ${linksManager.links.length} 个链接，确定要继续吗？`)) {
+                    return;
+                }
+            }
+            
+            // 执行导入
+            const result = linksManager.importLinks(importFileData, importMode, mergeDuplicates);
+            
+            // 显示结果模态框
+            showImportResult(result);
+            
+            // 重置导入状态
+            resetImportState();
+        }
+        
+        // 显示导入结果
+        function showImportResult(result) {
+            importResultMessage.innerHTML = '';
+            importResultMessage.className = 'modal-message';
+            
+            if (result.success) {
+                importResultMessage.classList.add('modal-success');
+                importResultMessage.innerHTML = `
+                    <p><i class="fas fa-check-circle"></i> <strong>导入成功！</strong></p>
+                    <p>文件包含 ${result.total} 个链接</p>
+                    <p>成功导入 ${result.added} 个链接</p>
+                    <p>跳过 ${result.skipped} 个链接</p>
+                    <p>${result.message}</p>
+                `;
+            } else {
+                importResultMessage.classList.add('modal-error');
+                importResultMessage.innerHTML = `
+                    <p><i class="fas fa-exclamation-circle"></i> <strong>导入失败！</strong></p>
+                    <p>${result.message}</p>
+                `;
+            }
+            
+            // 显示模态框
+            importResultModal.style.display = 'flex';
+        }
+        
+        // 重置导入状态
+        function resetImportState() {
+            importFileData = null;
+            importBtn.disabled = true;
+            importBtn.innerHTML = `<i class="fas fa-file-import"></i> 导入文件`;
+            importPreviewContainer.style.display = 'none';
+            confirmImportBtn.style.display = 'none';
+            cancelImportBtn.style.display = 'none';
+            importFileInput.value = '';
+        }
+        
         // 事件监听器
         // 标签页切换
         tabs.forEach(tab => {
@@ -1534,6 +2080,72 @@ https://example.com/agatha_s1e3.m3u8"></textarea>
             addManualBtn.style.display = 'none';
             clearManualBtn.style.display = 'none';
             manualPreviewData = [];
+        });
+        
+        // 文件选择事件
+        importFileInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            handleFileSelect(file);
+        });
+        
+        // 拖放文件事件
+        fileUploadArea.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            fileUploadArea.classList.add('drag-over');
+        });
+        
+        fileUploadArea.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            fileUploadArea.classList.remove('drag-over');
+        });
+        
+        fileUploadArea.addEventListener('drop', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            fileUploadArea.classList.remove('drag-over');
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                const file = files[0];
+                handleFileSelect(file);
+                
+                // 设置文件输入的值（用于UI一致性）
+                const dataTransfer = new DataTransfer();
+                dataTransfer.items.add(file);
+                importFileInput.files = dataTransfer.files;
+            }
+        });
+        
+        // 点击上传区域触发文件选择
+        fileUploadArea.addEventListener('click', function() {
+            importFileInput.click();
+        });
+        
+        // 导入按钮点击事件
+        importBtn.addEventListener('click', executeImport);
+        
+        // 确认导入按钮
+        confirmImportBtn.addEventListener('click', executeImport);
+        
+        // 取消导入按钮
+        cancelImportBtn.addEventListener('click', resetImportState);
+        
+        // 模态框关闭事件
+        modalClose.addEventListener('click', function() {
+            importResultModal.style.display = 'none';
+        });
+        
+        modalOkBtn.addEventListener('click', function() {
+            importResultModal.style.display = 'none';
+        });
+        
+        // 点击模态框外部关闭
+        importResultModal.addEventListener('click', function(e) {
+            if (e.target === importResultModal) {
+                importResultModal.style.display = 'none';
+            }
         });
         
         // 播放控制
@@ -1625,23 +2237,31 @@ https://example.com/agatha_s1e3.m3u8"></textarea>
             updateStatus('准备播放', false);
             
             // 设置自动识别示例
-            baseTitleAutoInput.value = '';
+            baseTitleAutoInput.value = '阿加莎克里斯蒂之七面钟';
             seasonAutoInput.value = '1';
             startEpisodeInput.value = '1';
             
             // 设置自动识别URL示例
             batchUrlsInput.value = 
-``;
+`https://example.com/agatha_christie_season1_episode01.m3u8
+https://example.com/agatha_christie_s01e02.m3u8
+https://example.com/agatha_christie_S1E03.m3u8
+https://example.com/agatha_christie_1x04.m3u8
+https://example.com/agatha_christie_season1_episode05.m3u8`;
             
             // 设置手动识别示例
-            baseTitleManualInput.value = '';
+            baseTitleManualInput.value = '阿加莎克里斯蒂之七面钟';
             seasonManualInput.value = '1';
             startEpisodeManualInput.value = '1';
             episodeStepInput.value = '1';
             
             // 设置手动识别URL示例
             manualUrlsInput.value = 
-``;
+`https://example.com/agatha_ep1.m3u8
+https://example.com/agatha_ep2.m3u8
+https://example.com/agatha_ep3.m3u8
+https://example.com/agatha_ep4.m3u8
+https://example.com/agatha_ep5.m3u8`;
             
             // 调整播放列表和管理面板高度
             setTimeout(() => {
